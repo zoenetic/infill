@@ -1,9 +1,9 @@
-import { type Concept, kind } from "./concept";
+import { type Concept, kind, type TypeOf } from "./concept";
 import type { Fill } from "./fill";
 import type { Gap, GapOf, Gaps } from "./gap";
+import type { Emit, Node } from "./ir";
 
 type FillOf<C> = C extends Concept<any, infer F, any> ? F : {};
-type ShapeOf<C> = C extends Concept<any, any, infer T> ? T : unknown;
 
 type Narrows<F extends Fill, P extends Fill> = {
 	[K in keyof F]: K extends keyof P
@@ -14,30 +14,37 @@ type Narrows<F extends Fill, P extends Fill> = {
 };
 
 export function of<T>(): Concept<Gap, {}, T>;
-export function of<T>(prompt: string): Concept<Gap, {}, T>;
+export function of<T>(description: string): Concept<Gap, {}, T>;
 export function of<C extends Concept<any, any>>(
-	to: C,
-): Concept<GapOf<C>, {}, ShapeOf<C>>;
+	from: C,
+): Concept<GapOf<C>, {}, TypeOf<C>>;
 export function of<C extends Concept<any, any>, F extends Fill>(
-	to: C,
+	from: C,
 	fill: F & Narrows<F, FillOf<C>>,
-): Concept<GapOf<C> | Gaps<F>, F, ShapeOf<C>>;
+): Concept<GapOf<C> | Gaps<F>, F, TypeOf<C>>;
 export function of<C extends Concept<any, any>>(
-	prompt: string,
-	to: C,
-): Concept<GapOf<C>, {}, ShapeOf<C>>;
+	description: string,
+	from: C,
+): Concept<GapOf<C>, {}, TypeOf<C>>;
 export function of<C extends Concept<any, any>, F extends Fill>(
-	prompt: string,
-	to: C,
+	description: string,
+	from: C,
 	fill: F & Narrows<F, FillOf<C>>,
-): Concept<GapOf<C> | Gaps<F>, F, ShapeOf<C>>;
+): Concept<GapOf<C> | Gaps<F>, F, TypeOf<C>>;
 export function of(
 	a?: string | Concept<any, any>,
 	b?: Concept<any, any> | Fill,
 	c?: Fill,
 ): Concept<any, any> {
-	const prompt = typeof a === "string" ? a : undefined;
-	const to = (typeof a === "string" ? b : a) as Concept<any, any> | undefined;
+	const description = typeof a === "string" ? a : undefined;
+	const from = (typeof a === "string" ? b : a) as Concept<any, any> | undefined;
 	const fill = typeof a === "string" ? c : (b as Fill | undefined);
-	return { [kind]: "of", prompt, to, fill };
+	return { [kind]: "of", description, from, fill };
 }
+
+export const emitOf = (c: Concept<any, any>, e: Emit): Node => ({
+	kind: "shape",
+	description: c.description,
+	from: e.nameOf(c.from),
+	fill: e.fields(c.fill),
+});
