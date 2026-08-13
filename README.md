@@ -1,1 +1,3 @@
-Infill is a framework for writing specs for LLMs using your favourite programming language instead of markdown.
+# infill
+
+Spec driven development for people who still want to write code.
