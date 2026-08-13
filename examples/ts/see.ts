@@ -1,4 +1,4 @@
-import { crawl, gapsOf } from "../src/crawl";
+import { crawl, gapsOf } from "../../ts/src/crawl";
 import * as spec from "./spec";
 
 for (const root of crawl(spec as Record<string, unknown>)) {

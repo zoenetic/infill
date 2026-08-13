@@ -1,6 +1,6 @@
-import { def } from "../src/def";
+import { def } from "../../ts/src/def";
+import { ref } from "../../ts/src/ref";
 import { is } from "../src/is";
-import { ref } from "../src/ref";
 
 export const user = def("someone who signs in", {
 	email: def("their contact address and username"),
