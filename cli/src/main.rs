@@ -15,35 +15,35 @@ struct Root {
 #[derive(Debug, Deserialize)]
 #[serde(tag = "kind", rename_all = "camelCase")]
 enum Node {
-    Def {
+    Concept {
         #[serde(default)]
         prompt: Option<String>,
         #[serde(default)]
         fill: Vec<Field>,
     },
-    Ref {
+    Reference {
         #[serde(default)]
         prompt: Option<String>,
         to: Option<String>,
     },
-    Of {
+    Shape {
         #[serde(default)]
         prompt: Option<String>,
         to: Option<String>,
         #[serde(default)]
         fill: Vec<Field>,
     },
-    Many {
+    Collection {
         #[serde(default)]
         prompt: Option<String>,
         inner: Box<Node>,
     },
-    Maybe {
+    Optional {
         #[serde(default)]
         prompt: Option<String>,
         inner: Box<Node>,
     },
-    OneOf {
+    Choice {
         #[serde(default)]
         prompt: Option<String>,
         #[serde(default)]
