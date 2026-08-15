@@ -1,7 +1,7 @@
 import { stringify } from "yaml";
 import { type Concept, type Former, former } from "./concept";
 
-/** a map of formers to their forms */
+/** Human-readable name for each internal {@link Former}, used as the `form` field in emitted output. */
 const FORM: Record<Former, string> = {
 	def: "concept",
 	ref: "reference",
@@ -11,6 +11,7 @@ const FORM: Record<Former, string> = {
 	oneOf: "choice",
 };
 
+/** Static preamble embedded in every emitted document, explaining the output's conventions to its reader. */
 const howToRead = {
 	what: "A specification. Each concept describes something to produce. Where a concept is underspecified, the unspecified part is a gap and filling it is your job - use the concept's name, description, position, and neighbours as evidence.",
 	gapsAreDeliberate:
@@ -31,9 +32,11 @@ const howToRead = {
 	},
 };
 
+/** Extracts the last path segment of a dotted `path`, stripping any trailing collection/optional/choice marker. */
 const label = (path: string) =>
 	(path.split(".").pop() ?? path).replace(/(\[\]|\?|#\d+)$/, "");
 
+/** Spells out small non-negative integers (`0`-`12`) in words for use in prose; falls back to the numeral otherwise. */
 const num = (n: number) =>
 	[
 		"zero",
@@ -51,18 +54,27 @@ const num = (n: number) =>
 		"twelve",
 	][n] ?? String(n);
 
+/** Joins a list of strings into a natural-language conjunction, e.g. `["a", "b", "c"]` becomes `"a, b and c"`. */
 const conjoin = (xs: string[]) =>
 	xs.length <= 1
 		? (xs[0] ?? "")
 		: `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`;
 
+/** Type guard: reports whether `v` is a {@link Concept}, i.e. an object carrying the {@link former} property. */
 const isConcept = (v: unknown): v is Concept<any, any> =>
 	typeof v === "object" && v !== null && former in v;
 
+/** A generic, YAML-serializable document node built up while emitting a concept. */
 type Doc = Record<string, unknown>;
 
+/** A problem found while emitting a concept, reported alongside the emitted YAML rather than thrown. */
 type Warning = { path: string; message: string };
 
+/**
+ * Renders every named {@link Concept} exported by module `mod` into a single, self-describing
+ * YAML document intended for an AI or human reader to fill in the gaps of, plus any warnings
+ * about ambiguous specifications (e.g. a fill part that bare-references a bound concept).
+ */
 export function emit(mod: Record<string, unknown>): {
 	yaml: string;
 	warnings: Warning[];
@@ -73,9 +85,11 @@ export function emit(mod: Record<string, unknown>): {
 
 	const warnings: Warning[] = [];
 
+	/** Looks up the exported name a concept is bound to, or `null` if it isn't a named export. */
 	const nameOf = (c: Concept<any, any> | undefined) =>
 		c ? (named.get(c) ?? null) : null;
 
+	/** Describes, in prose, what remains unspecified (the gap) for concept `c` at `path`. */
 	const gapOf = (c: Concept<any, any>, path: string): string => {
 		const parts = c.fill ? Object.keys(c.fill).length : 0;
 		const name = label(path);
@@ -99,6 +113,7 @@ export function emit(mod: Record<string, unknown>): {
 		}
 	};
 
+	/** Composes the human-facing "reading" of concept `c` at `path`: how to interpret it given its kind, name, description and parts. */
 	const readingOf = (c: Concept<any, any>, path: string): string => {
 		const p = `\`${path}\``;
 		const name = label(path);
@@ -147,6 +162,10 @@ export function emit(mod: Record<string, unknown>): {
 		}
 	};
 
+	/**
+	 * Recursively renders `c`'s fill (if any) into a {@link Doc} of named parts, warning when a part
+	 * bare-references a bound concept instead of wrapping it in `of(...)` or `ref(...)`.
+	 */
 	const partsOf = (c: Concept<any, any>, path: string): Doc | undefined => {
 		const fill = c.fill ?? {};
 		const keys = Object.keys(fill);
@@ -165,6 +184,7 @@ export function emit(mod: Record<string, unknown>): {
 		return parts;
 	};
 
+	/** Renders concept `c` at `path` into its full {@link Doc} node, recursing into its parts, element, or cases as needed. */
 	const node = (c: Concept<any, any>, path: string): Doc => {
 		const d: Doc = { path, form: FORM[c[former]] };
 		if (c[former] === "ref") d.pointsAt = nameOf(c.to);

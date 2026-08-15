@@ -3,7 +3,9 @@ import type { Gap } from "./gap";
 
 type Cases = Record<string, Concept<any, any>>;
 
+/** Creates a `oneOf` concept: exactly one of the given `cases`, an exhaustive list, with no description. */
 export function oneOf(...cases: Concept<any, any>[]): Concept<Gap>;
+/** Creates a `oneOf` concept documented by `description`, choosing exactly one of `cases`. */
 export function oneOf(
 	prompt: string,
 	...cases: Concept<any, any>[]

@@ -2,6 +2,7 @@ import { type Concept, former, type TypeOf } from "./concept";
 import type { Fill } from "./fill";
 import type { Gap, GapOf, Gaps } from "./gap";
 
+/** Extracts the {@link Fill} of concept `C`, defaulting to `{}` if it has none. */
 type FillOf<C> = C extends Concept<any, infer F, any> ? F : {};
 
 /**
@@ -19,19 +20,25 @@ type Narrows<F extends Fill, P extends Fill> = {
 		: F[K];
 };
 
+/** Creates a totally unspecified `of` concept describing a value of type `T`, with no shape taken from another concept. */
 export function of<T>(): Concept<Gap, {}, T>;
+/** Creates an `of` concept describing a value of type `T`, specified only by its description. */
 export function of<T>(description: string): Concept<Gap, {}, T>;
+/** Creates an `of` concept that takes on the shape of `from`, without refining or adding any parts. */
 export function of<C extends Concept<any, any>>(
 	from: C,
 ): Concept<GapOf<C>, {}, TypeOf<C>>;
+/** Creates an `of` concept that takes on the shape of `from`, refining or adding parts via `fill`. */
 export function of<C extends Concept<any, any>, F extends Fill>(
 	from: C,
 	fill: F & Narrows<F, FillOf<C>>,
 ): Concept<GapOf<C> | Gaps<F>, F, TypeOf<C>>;
+/** Creates an `of` concept that takes on the shape of `from`, documented by `description`. */
 export function of<C extends Concept<any, any>>(
 	description: string,
 	from: C,
 ): Concept<GapOf<C>, {}, TypeOf<C>>;
+/** Creates an `of` concept that takes on the shape of `from`, documented by `description` and refined by `fill`. */
 export function of<C extends Concept<any, any>, F extends Fill>(
 	description: string,
 	from: C,

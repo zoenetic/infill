@@ -2,10 +2,13 @@ import { type Concept, former } from "./concept";
 import type { Fill } from "./fill";
 import type { Gap, Gaps } from "./gap";
 
-/** defines a concept */
+/** Creates a totally unspecified `def` concept: a bare name with no description and no parts. */
 export function def(): Concept<Gap>;
+/** Creates a `def` concept specified only by its description, with no named parts. */
 export function def(description: string): Concept<Gap>;
+/** Creates a `def` concept specified by its named parts `fill`, with no description. */
 export function def<F extends Fill>(fill: F): Concept<Gaps<F>, F>;
+/** Creates a `def` concept specified by both a description and named parts `fill`. */
 export function def<F extends Fill>(
 	description: string,
 	fill: F,
