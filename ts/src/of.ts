@@ -1,10 +1,16 @@
-import { type Concept, kind, type TypeOf } from "./concept";
+import { type Concept, former, type TypeOf } from "./concept";
 import type { Fill } from "./fill";
 import type { Gap, GapOf, Gaps } from "./gap";
-import type { Emit, Node } from "./ir";
 
 type FillOf<C> = C extends Concept<any, infer F, any> ? F : {};
 
+/**
+ * Guards an `of` override fill `F` against the target's fill `P`. For a key
+ * shared with `P`, the override may only carve *further* — its gap set must be
+ * a superset of the target's at that key (`GapOf<P[K]> extends GapOf<F[K]>`), so
+ * it can add sub-gaps but never drop one the target declared ("err toward
+ * completeness"). Keys not in `P` are new positions and unconstrained.
+ */
 type Narrows<F extends Fill, P extends Fill> = {
 	[K in keyof F]: K extends keyof P
 		? GapOf<P[K]> extends GapOf<F[K]>
@@ -39,12 +45,5 @@ export function of(
 	const description = typeof a === "string" ? a : undefined;
 	const from = (typeof a === "string" ? b : a) as Concept<any, any> | undefined;
 	const fill = typeof a === "string" ? c : (b as Fill | undefined);
-	return { [kind]: "of", description, from, fill };
+	return { [former]: "of", description, from, fill };
 }
-
-export const emitOf = (c: Concept<any, any>, e: Emit): Node => ({
-	kind: "shape",
-	description: c.description,
-	from: e.nameOf(c.from),
-	fill: e.fields(c.fill),
-});

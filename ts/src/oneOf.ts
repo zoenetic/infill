@@ -1,23 +1,29 @@
-import { type Concept, kind } from "./concept";
+import { type Concept, former } from "./concept";
 import type { Gap } from "./gap";
-import type { Emit, Node } from "./ir";
+
+type Cases = Record<string, Concept<any, any>>;
 
 export function oneOf(...cases: Concept<any, any>[]): Concept<Gap>;
 export function oneOf(
-	description: string,
+	prompt: string,
 	...cases: Concept<any, any>[]
 ): Concept<Gap>;
+export function oneOf<C extends Cases>(
+	cases: C,
+): Concept<Gap, {}, keyof C & string>;
+export function oneOf<C extends Cases>(
+	prompt: string,
+	cases: C,
+): Concept<Gap, {}, keyof C & string>;
 export function oneOf(
-	a?: string | Concept<any, any>,
+	a?: string | Concept<any, any> | Cases,
 	...rest: Concept<any, any>[]
 ): Concept<any, any> {
 	const description = typeof a === "string" ? a : undefined;
-	const cases = typeof a === "string" ? rest : a ? [a, ...rest] : rest;
-	return { [kind]: "oneOf", description, cases };
+	const head = typeof a === "string" ? rest[0] : a;
+	if (head && !(former in head))
+		return { [former]: "oneOf", description, cases: head as Cases };
+	const cases =
+		typeof a === "string" ? rest : a ? [a as Concept<any, any>, ...rest] : rest;
+	return { [former]: "oneOf", description, cases };
 }
-
-export const emitOneOf = (c: Concept<any, any>, e: Emit): Node => ({
-	kind: "choice",
-	description: c.description,
-	cases: (c.cases ?? []).map(e.node),
-});

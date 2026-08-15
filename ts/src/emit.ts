@@ -1,7 +1,8 @@
 import { stringify } from "yaml";
-import { type Concept, type Kind, kind } from "./concept";
+import { type Concept, type Former, former } from "./concept";
 
-const FORM: Record<Kind, string> = {
+/** a map of formers to their forms */
+const FORM: Record<Former, string> = {
 	def: "concept",
 	ref: "reference",
 	of: "shape",
@@ -56,7 +57,7 @@ const conjoin = (xs: string[]) =>
 		: `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`;
 
 const isConcept = (v: unknown): v is Concept<any, any> =>
-	typeof v === "object" && v !== null && kind in v;
+	typeof v === "object" && v !== null && former in v;
 
 type Doc = Record<string, unknown>;
 
@@ -78,7 +79,7 @@ export function emit(mod: Record<string, unknown>): {
 	const gapOf = (c: Concept<any, any>, path: string): string => {
 		const parts = c.fill ? Object.keys(c.fill).length : 0;
 		const name = label(path);
-		switch (c[kind]) {
+		switch (c[former]) {
 			case "def":
 				return parts === 0
 					? "Total."
@@ -103,7 +104,7 @@ export function emit(mod: Record<string, unknown>): {
 		const name = label(path);
 		const desc = c.description;
 		const keys = c.fill ? Object.keys(c.fill) : [];
-		switch (c[kind]) {
+		switch (c[former]) {
 			case "def":
 				if (keys.length)
 					return desc
@@ -135,7 +136,12 @@ export function emit(mod: Record<string, unknown>): {
 				return `${p} — ${of}, possibly absent.`;
 			}
 			case "oneOf": {
-				const n = c.cases?.length ?? 0;
+				const cs = c.cases;
+				const n = Array.isArray(cs)
+					? cs.length
+					: cs
+						? Object.keys(cs).length
+						: 0;
 				return `${p} is exactly one of ${num(n)} case${n === 1 ? "" : "s"}, listed below. The list is complete — do not invent cases.`;
 			}
 		}
@@ -160,14 +166,14 @@ export function emit(mod: Record<string, unknown>): {
 	};
 
 	const node = (c: Concept<any, any>, path: string): Doc => {
-		const d: Doc = { path, form: FORM[c[kind]] };
-		if (c[kind] === "ref") d.pointsAt = nameOf(c.to);
-		if (c[kind] === "of") d.shapedLike = nameOf(c.from);
+		const d: Doc = { path, form: FORM[c[former]] };
+		if (c[former] === "ref") d.pointsAt = nameOf(c.to);
+		if (c[former] === "of") d.shapedLike = nameOf(c.from);
 		if (c.description !== undefined) d.description = c.description;
 		else d.describedBy = "name only";
 		d.reading = readingOf(c, path);
 		d.gap = gapOf(c, path);
-		switch (c[kind]) {
+		switch (c[former]) {
 			case "def":
 			case "of": {
 				const parts = partsOf(c, path);
@@ -180,9 +186,16 @@ export function emit(mod: Record<string, unknown>): {
 			case "maybe":
 				d.inner = node(c.inner!, `${path}?`);
 				break;
-			case "oneOf":
-				d.cases = (c.cases ?? []).map((k, i) => node(k, `${path}#${i}`));
+			case "oneOf": {
+				const cs = c.cases;
+				if (Array.isArray(cs))
+					d.cases = cs.map((k, i) => node(k, `${path}#${i}`));
+				else if (cs)
+					d.cases = Object.fromEntries(
+						Object.entries(cs).map(([k, v]) => [k, node(v, `${path}#${k}`)]),
+					);
 				break;
+			}
 		}
 		return d;
 	};
