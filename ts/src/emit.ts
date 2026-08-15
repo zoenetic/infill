@@ -1,7 +1,7 @@
 import { stringify } from "yaml";
 import { type Concept, type Former, former } from "./concept";
 
-/** Human-readable name for each internal {@link Former}, used as the `form` field in emitted output. */
+/** The human readable name for the 'form' produced by a given {@link Former} in emitted output. */
 const FORM: Record<Former, string> = {
 	def: "concept",
 	ref: "reference",
