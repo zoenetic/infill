@@ -1,13 +1,4 @@
-import {
-	type Conforms,
-	def,
-	many,
-	maybe,
-	of,
-	oneOf,
-	pick,
-	ref,
-} from "../../ts/src";
+import { type Conforms, def, many, maybe, of, oneOf, pick, ref } from "../../ts/src";
 import * as spec from "./spec";
 
 export const admin = of("a user with elevated powers", spec.user, {

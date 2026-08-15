@@ -1,14 +1,17 @@
 import type { Fill } from "./fill";
 import { type Gap, gap } from "./gap";
 
+/** Global-registry so the tag survives module duplication (codegen/CLI
+ *  dynamically import the spec; a plain Symbol() would differ per instance). */
+
 /** Property key holding a {@link Concept}'s {@link Former}. Kept as a symbol so it never collides with a fill part named `former`. */
-export const former: unique symbol = Symbol("former");
+export const former: unique symbol = Symbol.for("infill.former");
 
 /** The discriminant naming which shape a {@link Concept} takes: a definition, a reference, a re-shaping, a collection, an optional, or a choice. */
 export type Former = "def" | "ref" | "of" | "many" | "maybe" | "oneOf";
 
 /** Phantom property key used to carry a {@link Concept}'s inferred value type ({@link TypeOf}) at the type level only; never set at runtime. */
-export const type: unique symbol = Symbol("type");
+export const type: unique symbol = Symbol.for("infill.type");
 
 /**
  * A specification node describing something to produce. Every concept constructor

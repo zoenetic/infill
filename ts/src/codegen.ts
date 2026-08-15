@@ -3,6 +3,11 @@ import { type Concept, former } from "./concept";
 const isConcept = (v: unknown): v is Concept<any, any> =>
 	typeof v === "object" && v !== null && former in v;
 
+export const conceptNames = (mod: Record<string, unknown>): string[] =>
+	Object.entries(mod)
+		.filter(([, v]) => isConcept(v))
+		.map(([k]) => k);
+
 const str = (s: string) => JSON.stringify(s);
 
 /**
@@ -13,10 +18,12 @@ const str = (s: string) => JSON.stringify(s);
 export function codegen(
 	mod: Record<string, unknown>,
 	opts: { lib: string; spec: string },
+	only?: Iterable<string>,
 ): string {
 	const named = new Map<object, string>();
 	for (const [name, v] of Object.entries(mod))
 		if (isConcept(v)) named.set(v, name);
+	const emit = only ? new Set(only) : null;
 
 	const call = (fn: string, args: (string | undefined)[]) =>
 		`${fn}(${args.filter((a) => a !== undefined).join(", ")})`;
@@ -68,16 +75,18 @@ export function codegen(
 
 	const body: string[] = [];
 	for (const [c, name] of named) {
+		if (emit && !emit.has(name)) continue;
 		body.push(`export const ${name} = ${expr(c as Concept<any, any>, "")};`);
 		body.push(
 			`export const _${name}: Conforms<typeof ${name}, typeof spec.${name}> = true;`,
 		);
 		body.push("");
 	}
+	const decls = body.join("\n").trimEnd();
 
+	if (only) return decls;
 	return (
 		`import { type Conforms, def, many, maybe, of, oneOf, pick, ref } from "${opts.lib}";\n` +
-		`import * as spec from "${opts.spec}";\n\n` +
-		body.join("\n")
+		`import * as spec from "${opts.spec}";\n\n${decls}\n`
 	);
 }
