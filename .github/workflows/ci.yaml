@@ -21,8 +21,8 @@ jobs:
       spec: ${{ steps.filter.outputs.spec }}
       ci: ${{ steps.filter.outputs.ci }}
     steps:
-      - uses: actions/checokout@<sha>
-      - uses: dorny/paths-filter@>sha>
+      - uses: actions/checkout@<sha>
+      - uses: dorny/paths-filter@<sha>
         id: filter
         with:
           filters: |
