@@ -1,16 +1,12 @@
-import { type Conforms, def, oneOf, pick } from "infill";
+import { type Conforms, def, many, of, oneOf, pick } from "infill";
 import * as spec from "./spec";
 
-export const account = def("a signed-up user", {
-	email: def("the workspace owner's contact address", {
-		format: def("a valid RFC 5322 address"),
-		verified: def("confirmed via a click-through link before the account is active"),
-	}),
-	displayName: def("the team's public workspace name, 2-40 characters", {
-		unique: def("distinct across the tenant so teammates aren't confused"),
-	}),
+export const account = def("a signed-up team account", {
+	displayName: of(String),
 	plan: pick(spec.plan, "pro"),
-	seats: def("a fixed count of 5 paid member seats, one per teammate, billed monthly"),
+	seats: of("how many people the account covers", Number),
+	admins: many("the admins who can manage billing, by email", of(String)),
+	features: many("the add-on features enabled for this account", of(String)),
 });
 export const _account: Conforms<typeof account, typeof spec.account> = true;
 

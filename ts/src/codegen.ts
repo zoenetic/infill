@@ -34,13 +34,29 @@ export function codegen(
 	): string => {
 		const inner = `${ind}\t`;
 		const rows = Object.entries(fill)
-			.filter(([, v]) => v[former] !== "given")
+			// skip `given` facts, and phantom `of<T>()` leaves whose type is erased
+			// (token-typed `of(String)` leaves survive and are reproduced below)
+			.filter(
+				([, v]) =>
+					v[former] !== "given" &&
+					!(v[former] === "of" && !v.from && v.token === undefined),
+			)
 			.map(([k, v]) => `${inner}${k}: ${expr(v, inner)},`);
 		return `{\n${rows.join("\n")}\n${ind}}`;
 	};
 
 	const ref = (c: Concept<any, any> | undefined) =>
 		c && named.has(c) ? `spec.${named.get(c)}` : "spec./*inline*/";
+
+	/** Source for a token-typed `of` leaf's token — `String`/`Number`/`Boolean`. */
+	const tokenSource = (t: unknown): string =>
+		t === String
+			? "String"
+			: t === Number
+				? "Number"
+				: t === Boolean
+					? "Boolean"
+					: "undefined";
 
 	const expr = (c: Concept<any, any>, ind: string): string => {
 		const d = c.description !== undefined ? str(c.description) : undefined;
@@ -50,6 +66,7 @@ export function codegen(
 			case "ref":
 				return call("ref", [d, ref(c.to)]);
 			case "of":
+				if (c.token) return call("of", [d, tokenSource(c.token)]);
 				return call("of", [
 					d,
 					ref(c.from),
