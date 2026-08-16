@@ -4,3 +4,5 @@ dist/
 target/
 output.yaml
 notes/
+ts/README.md
+.env
