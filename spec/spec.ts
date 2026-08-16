@@ -35,15 +35,15 @@ export const former = oneOf(
 			},
 		),
 		many: def("some number of an inner concept", {
-			inner: ref(concept),
+			inner: of(concept),
 			form: given("collection"),
 		}),
 		maybe: def("zero or one of an inner concept", {
-			inner: ref(concept),
+			inner: of(concept),
 			form: given("optional"),
 		}),
 		oneOf: def("exactly one of a set of named cases; closed as written", {
-			cases: many(ref(concept)),
+			cases: many(of(concept)),
 			form: given("choice"),
 		}),
 		given: def(
@@ -64,7 +64,7 @@ export const primitives = def("the primitives infill is built from", {
 export const spec = def(
 	"what the human author writes; bound concepts that may be narrowed",
 	{
-		concepts: many(ref(concept)),
+		concepts: many(of(concept)),
 	},
 );
 
@@ -72,13 +72,22 @@ export const pipeline = def(
 	"from spec to a generated output the model can read and write",
 	{
 		spec: ref(spec),
-		artifact: def("the model-facing rendering the model reads", {
-			version: given(1),
-			root: ref("the spec's entry-point concept", concept),
-			legend: def(
-				"model-facing instructions on how to read gaps, names, and forms",
-			),
-		}),
+		artifact: def(
+			"the model-facing rendering the model reads; its keys are its own namespace, separate from these concept names — version surfaces as the top-level `infill:` key and legend as `howToRead`",
+			{
+				version: given(1),
+				root: ref(
+					"the spec's entry-point concept; present when the spec sets a default export",
+					concept,
+				),
+				legend: given(
+					"model-facing instructions on how to read gaps, names, and forms",
+				),
+				concepts: given(
+					"every named concept in the spec, keyed by name; each rendered as a node — its path, form, description or name-only marker, generated reading and gap lines, and the parts, element, or cases its form carries",
+				),
+			},
+		),
 		decisions: of(
 			"decisions made by the model, which the typechecker can verify against the spec",
 			spec,
