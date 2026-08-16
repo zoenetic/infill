@@ -41,6 +41,8 @@ export interface Concept<
 	readonly to?: Concept<any, any>;
 	/** Present on `of` concepts: the concept whose shape is taken on. */
 	readonly from?: Concept<any, any>;
+	/** Present on token-typed `of` leaves (`of(String)`, `of(schema)`): the runtime type token, so a leaf's type survives erasure. */
+	readonly token?: unknown;
 	/** Present on `many`/`maybe` concepts: the element or wrapped concept. */
 	readonly inner?: Concept<any, any>;
 	/** Present on `oneOf` concepts: the exhaustive list of alternatives, as an array of cases or a keyed record for {@link pick}. */

@@ -57,3 +57,24 @@ const decidedPlan = pick(plan, "pro");
 export const onlyPro: Shape<typeof decidedPlan> = "pro";
 // @ts-expect-error the decision fixed the plan to "pro"
 export const notPro: Shape<typeof decidedPlan> = "free";
+
+// Token-typed leaves — the type is a runtime value, but still projects like of<T>().
+const config = def("a service config", {
+	host: of(String),
+	port: of("the listening port", Number),
+	tls: of(Boolean),
+	legacy: of<string>(), // phantom still available as a type-only escape hatch
+});
+export const cfg: Shape<typeof config> = {
+	host: "localhost",
+	port: 8080,
+	tls: true,
+	legacy: "v1",
+};
+export const badCfg: Shape<typeof config> = {
+	// @ts-expect-error host is a string (of(String))
+	host: 42,
+	port: 8080,
+	tls: true,
+	legacy: "v1",
+};

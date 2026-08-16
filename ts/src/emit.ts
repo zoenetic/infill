@@ -103,16 +103,27 @@ export function emit(mod: Record<string, unknown>): {
 	const nameOf = (c: Concept<any, any> | undefined) =>
 		c ? (named.get(c) ?? null) : null;
 
-	// A typed `of<T>()` (no `from`) reads as a plain leaf: T is a type-level
-	// constraint the type checker enforces, but it's erased at runtime so the
-	// artifact can't show it.
+	// A from-less `of` reads as a leaf. A phantom `of<T>()` erases its type, so
+	// the artifact can't show it; a token-typed `of(String)` keeps the type at
+	// runtime (see `tokenName`), so the leaf renders with an explicit `type`.
 	const kindOf = (c: Concept<any, any>) =>
 		c[former] === "of" && !c.from ? ("def" as const) : c[former];
+
+	/** The type name a token-typed `of` leaf carries (`of(String)` -> "string"), or null. */
+	const tokenName = (c: Concept<any, any>): string | null => {
+		if (c[former] !== "of" || c.from || c.token === undefined) return null;
+		if (c.token === String) return "string";
+		if (c.token === Number) return "number";
+		if (c.token === Boolean) return "boolean";
+		return null;
+	};
 
 	/** Describes, in prose, what remains unspecified (the gap) for concept `c` at `path`. */
 	const gapOf = (c: Concept<any, any>, path: string): string => {
 		const parts = c.fill ? Object.keys(c.fill).length : 0;
 		const name = label(path);
+		const tn = tokenName(c);
+		if (tn) return `A ${tn} — the type is fixed; the value is yours to provide.`;
 		switch (kindOf(c)) {
 			case "def":
 				return parts === 0
@@ -141,6 +152,8 @@ export function emit(mod: Record<string, unknown>): {
 		const name = label(path);
 		const desc = c.description;
 		const keys = c.fill ? Object.keys(c.fill) : [];
+		const tn = tokenName(c);
+		if (tn) return desc ? `${p} — ${desc}. A ${tn}.` : `${p} — a ${tn}.`;
 		switch (kindOf(c)) {
 			case "def":
 				if (keys.length)
@@ -211,6 +224,8 @@ export function emit(mod: Record<string, unknown>): {
 	/** Renders concept `c` at `path` into its full {@link Doc} node, recursing into its parts, element, or cases as needed. */
 	const node = (c: Concept<any, any>, path: string): Doc => {
 		const d: Doc = { path, form: FORM[kindOf(c)] };
+		const tn = tokenName(c);
+		if (tn) d.type = tn;
 		if (c[former] === "given") d.is = c.value;
 		if (c[former] === "ref") d.pointsAt = nameOf(c.to);
 		if (c[former] === "of" && c.from) d.shapedLike = nameOf(c.from);
