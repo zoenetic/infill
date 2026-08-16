@@ -1,6 +1,7 @@
 packages:
   - ts
   - spec
+  - examples
 
 catalog:
   typescript: ^7.0.2

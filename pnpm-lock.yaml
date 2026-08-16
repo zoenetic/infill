@@ -12,7 +12,11 @@ catalogs:
 
 importers:
 
-  .: {}
+  examples:
+    dependencies:
+      infill:
+        specifier: workspace:*
+        version: link:../ts
 
   spec:
     dependencies:
