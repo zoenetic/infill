@@ -1,22 +1,27 @@
 {
   "name": "infill",
-  "version": "0.1.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "tsx --test src/*.test.ts"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "version": "0.1.2",
+  "description": "Spec driven development for people who still want to write code.",
   "type": "module",
-  "devDependencies": {
-    "@biomejs/biome": "^2.5.7",
-    "@types/node": "^26.2.0",
-    "tsx": "^4.23.12",
-    "typescript": "^7.0.2"
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "types": "./src/index.ts",
+  "bin": {
+    "infill": "./bin/infill.mjs"
+  },
+  "files": ["src", "bin"],
+  "scripts": {
+    "prepack": "cp ../README.md README.md",
+    "postpack": "rm -f README.md",
+    "test": "tsc --noEmit && tsx --test src/*.test.ts"
   },
   "dependencies": {
+    "tsx": "^4.23.12",
+    "typescript": "catalog:",
     "yaml": "^2.9.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0"
   }
 }

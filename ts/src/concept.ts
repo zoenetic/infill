@@ -8,7 +8,14 @@ import { type Gap, gap } from "./gap";
 export const former: unique symbol = Symbol.for("infill.former");
 
 /** The discriminant naming which shape a {@link Concept} takes: a definition, a reference, a re-shaping, a collection, an optional, or a choice. */
-export type Former = "def" | "ref" | "of" | "many" | "maybe" | "oneOf";
+export type Former =
+	| "def"
+	| "ref"
+	| "of"
+	| "many"
+	| "maybe"
+	| "oneOf"
+	| "given";
 
 /** Phantom property key used to carry a {@link Concept}'s inferred value type ({@link TypeOf}) at the type level only; never set at runtime. */
 export const type: unique symbol = Symbol.for("infill.type");
@@ -40,6 +47,8 @@ export interface Concept<
 	readonly cases?:
 		| readonly Concept<any, any>[]
 		| Readonly<Record<string, Concept<any, any>>>;
+	/** Present on `given` concepts: Facts. */
+	readonly value?: unknown;
 	readonly [gap]?: G;
 	readonly [type]?: T;
 }

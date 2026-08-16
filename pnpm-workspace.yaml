@@ -1,0 +1,9 @@
+packages:
+  - ts
+  - spec
+
+catalog:
+  typescript: ^7.0.2
+
+allowBuilds:
+  esbuild: true
