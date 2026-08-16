@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { basename, dirname, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -61,12 +61,25 @@ async function main() {
 		unknown
 	>;
 
-	if (!existsSync(outPath) || values.overwrite) {
+	// Bootstrap writes the whole file. Rather than checking existence first
+	// (a TOCTOU race), create the file exclusively and treat EEXIST as "already
+	// there — merge additively". `--overwrite` writes unconditionally.
+	if (values.overwrite) {
 		writeFileSync(outPath, codegen(specMod, opts));
 		console.error(`wrote ${outPath}`);
 		return;
 	}
+	try {
+		writeFileSync(outPath, codegen(specMod, opts), { flag: "wx" });
+		console.error(`wrote ${outPath}`);
+		return;
+	} catch (err) {
+		if ((err as NodeJS.ErrnoException).code !== "EEXIST") throw err;
+	}
 
+	// The file exists: read its text once and load it for its concept names,
+	// then append any roots it is missing.
+	const existing = readFileSync(outPath, "utf8");
 	const decMod = (await import(pathToFileURL(outPath).href)) as Record<
 		string,
 		unknown
@@ -79,10 +92,7 @@ async function main() {
 	}
 
 	const additions = codegen(specMod, opts, missing);
-	writeFileSync(
-		outPath,
-		`${readFileSync(outPath, "utf8").trimEnd()}\n\n${additions}\n`,
-	);
+	writeFileSync(outPath, `${existing.trimEnd()}\n\n${additions}\n`);
 	console.error(`added ${missing.length} root(s): ${missing.join(", ")}\n`);
 }
 
