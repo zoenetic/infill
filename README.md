@@ -2,7 +2,7 @@
 
 Infill is a spec-driven development framework for people who still want to write code.
 
-You write a **spec** — a tree of *concepts*, each describing something to build, with deliberate **gaps** left for a model to fill. Infill renders the spec into a model-facing document, scaffolds a *decisions* file, and — the point of the whole thing — type-checks the model's decisions against your spec. An LLM's interpretation of the spec becomes something `tsc` verifies, not something you take on faith.
+Each spec you write is a tree of concepts, each describing something to build, with deliberate gaps left for your AI model to fill. Infill renders the spec into a model-facing document, scaffolds a decisions file, and type-checks the model's decisions against your spec. The AI's interpretation of the spec becomes something `tsc` verifies, not something you take on faith.
 
 ## Example: an account
 
@@ -13,14 +13,12 @@ You write a **spec** — a tree of *concepts*, each describing something to buil
 ```ts
 import { def, of, oneOf } from "infill";
 
-// A subscription tier — exactly one of these applies.
 export const plan = oneOf("their subscription tier", {
 	free: def("no cost, limited usage"),
 	pro: def("paid, full features"),
 	enterprise: def("a custom contract"),
 });
 
-// The main concept: a signed-up user.
 export const account = def("a signed-up user", {
 	email: def("how we reach them"),
 	displayName: def("what other users see"),
