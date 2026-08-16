@@ -9,6 +9,7 @@ const FORM: Record<Former, string> = {
 	many: "collection",
 	maybe: "optional",
 	oneOf: "choice",
+	given: "fact",
 };
 
 /** Static preamble embedded in every emitted document, explaining the output's conventions to its reader. */
@@ -18,7 +19,7 @@ const howToRead = {
 		"A gap is a decision left to you on purpose, not an omission to report back.",
 	namesAreContent:
 		"A concept with no description is specified by its name alone. Read the name literally.",
-	everyConceptHasAPath: `This is its address from the root, denoted by '.' for a named part, '#n' for a choice's nth case, '[]' for a collections element, or '?' for an optional's value. Cite a path to refer to any part exactly.`,
+	everyConceptHasAPath: `This is its address from the root, denoted by '.' for a named part, '#name' for a keyed choice case (or '#n' for a positional one), '[]' for a collection's element, or '?' for an optional's value. Cite a path to refer to any part exactly.`,
 	forms: {
 		concept: "Described in its own right.",
 		reference:
@@ -29,12 +30,21 @@ const howToRead = {
 		optional: "The inner concept, possibly absent.",
 		choice:
 			"Exactly one of the listed cases. The list is complete; do not invent new cases.",
+		fact: "A decided value, stated as fixed. Not a gap — rely on it; do not treat it as yours.",
 	},
 };
 
 /** Extracts the last path segment of a dotted `path`, stripping any trailing collection/optional/choice marker. */
-const label = (path: string) =>
-	(path.split(".").pop() ?? path).replace(/(\[\]|\?|#\d+)$/, "");
+const label = (path: string) => {
+	const seg = path.split(".").pop() ?? path;
+	const hash = seg.indexOf("#");
+	if (hash !== -1) {
+		const key = seg.slice(hash + 1);
+		// keyed case -> the key; positional case (#n) -> the container name
+		return /^\d+$/.test(key) ? seg.slice(0, hash) : key;
+	}
+	return seg.replace(/(\[\]|\?)$/, "");
+};
 
 /** Spells out small non-negative integers (`0`-`12`) in words for use in prose; falls back to the numeral otherwise. */
 const num = (n: number) =>
@@ -81,7 +91,11 @@ export function emit(mod: Record<string, unknown>): {
 } {
 	const named = new Map<object, string>();
 	for (const [name, v] of Object.entries(mod))
-		if (isConcept(v)) named.set(v, name);
+		if (name !== "default" && isConcept(v)) named.set(v, name);
+	// A `default` export designates the spec's root; other named exports are its vocabulary.
+	const root = isConcept(mod.default)
+		? (named.get(mod.default as object) ?? null)
+		: null;
 
 	const warnings: Warning[] = [];
 
@@ -89,11 +103,17 @@ export function emit(mod: Record<string, unknown>): {
 	const nameOf = (c: Concept<any, any> | undefined) =>
 		c ? (named.get(c) ?? null) : null;
 
+	// A typed `of<T>()` (no `from`) reads as a plain leaf: T is a type-level
+	// constraint the type checker enforces, but it's erased at runtime so the
+	// artifact can't show it.
+	const kindOf = (c: Concept<any, any>) =>
+		c[former] === "of" && !c.from ? ("def" as const) : c[former];
+
 	/** Describes, in prose, what remains unspecified (the gap) for concept `c` at `path`. */
 	const gapOf = (c: Concept<any, any>, path: string): string => {
 		const parts = c.fill ? Object.keys(c.fill).length : 0;
 		const name = label(path);
-		switch (c[former]) {
+		switch (kindOf(c)) {
 			case "def":
 				return parts === 0
 					? "Total."
@@ -110,6 +130,8 @@ export function emit(mod: Record<string, unknown>): {
 				return "Whether it is present is open; the value is below.";
 			case "oneOf":
 				return "Which case applies; the cases are below.";
+			case "given":
+				return "None — a fact is decided, not a gap; rely on it as fixed.";
 		}
 	};
 
@@ -119,7 +141,7 @@ export function emit(mod: Record<string, unknown>): {
 		const name = label(path);
 		const desc = c.description;
 		const keys = c.fill ? Object.keys(c.fill) : [];
-		switch (c[former]) {
+		switch (kindOf(c)) {
 			case "def":
 				if (keys.length)
 					return desc
@@ -159,6 +181,8 @@ export function emit(mod: Record<string, unknown>): {
 						: 0;
 				return `${p} is exactly one of ${num(n)} case${n === 1 ? "" : "s"}, listed below. The list is complete — do not invent cases.`;
 			}
+			case "given":
+				return `${p} — a fact: ${c.value}. Fixed, not a gap; read it as given.`;
 		}
 	};
 
@@ -186,14 +210,17 @@ export function emit(mod: Record<string, unknown>): {
 
 	/** Renders concept `c` at `path` into its full {@link Doc} node, recursing into its parts, element, or cases as needed. */
 	const node = (c: Concept<any, any>, path: string): Doc => {
-		const d: Doc = { path, form: FORM[c[former]] };
+		const d: Doc = { path, form: FORM[kindOf(c)] };
+		if (c[former] === "given") d.is = c.value;
 		if (c[former] === "ref") d.pointsAt = nameOf(c.to);
-		if (c[former] === "of") d.shapedLike = nameOf(c.from);
-		if (c.description !== undefined) d.description = c.description;
-		else d.describedBy = "name only";
+		if (c[former] === "of" && c.from) d.shapedLike = nameOf(c.from);
+		if (c[former] !== "given") {
+			if (c.description !== undefined) d.description = c.description;
+			else d.describedBy = "name only";
+		}
 		d.reading = readingOf(c, path);
 		d.gap = gapOf(c, path);
-		switch (c[former]) {
+		switch (kindOf(c)) {
 			case "def":
 			case "of": {
 				const parts = partsOf(c, path);
@@ -224,6 +251,9 @@ export function emit(mod: Record<string, unknown>): {
 	for (const [c, name] of named)
 		concepts[name] = node(c as Concept<any, any>, name);
 
-	const yaml = stringify({ infill: 1, howToRead, concepts }, { lineWidth: 0 });
+	const doc = root
+		? { infill: 1, root, howToRead, concepts }
+		: { infill: 1, howToRead, concepts };
+	const yaml = stringify(doc, { lineWidth: 0 });
 	return { yaml, warnings };
 }

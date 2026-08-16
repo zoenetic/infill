@@ -33,9 +33,9 @@ export function codegen(
 		ind: string,
 	): string => {
 		const inner = `${ind}\t`;
-		const rows = Object.entries(fill).map(
-			([k, v]) => `${inner}${k}: ${expr(v, inner)},`,
-		);
+		const rows = Object.entries(fill)
+			.filter(([, v]) => v[former] !== "given")
+			.map(([k, v]) => `${inner}${k}: ${expr(v, inner)},`);
 		return `{\n${rows.join("\n")}\n${ind}}`;
 	};
 
@@ -70,12 +70,15 @@ export function codegen(
 					]);
 				return call("oneOf", [d]);
 			}
+			case "given":
+				return call("given", [JSON.stringify(c.value)]);
 		}
 	};
 
 	const body: string[] = [];
 	for (const [c, name] of named) {
 		if (emit && !emit.has(name)) continue;
+		if ((c as Concept<any, any>)[former] === "given") continue;
 		body.push(`export const ${name} = ${expr(c as Concept<any, any>, "")};`);
 		body.push(
 			`export const _${name}: Conforms<typeof ${name}, typeof spec.${name}> = true;`,

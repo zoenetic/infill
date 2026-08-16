@@ -5,6 +5,7 @@ import { basename, dirname, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { parseArgs } from "node:util";
 import { codegen, conceptNames } from "./codegen";
+import { emit } from "./emit";
 
 const require = createRequire(import.meta.url);
 
@@ -31,13 +32,23 @@ async function main() {
 		},
 	});
 	const [cmd, specPath] = positionals;
-	if ((cmd !== "gen" && cmd !== "check") || !specPath) {
+	if ((cmd !== "gen" && cmd !== "check" && cmd !== "emit") || !specPath) {
 		console.error(
-			"Usage:\n  infill gen <spec.ts> [--lib <specifier>] [--overwrite]\n  infill check <spec.ts>",
+			"Usage:\n  infill gen <spec.ts> [--lib <specifier>] [--overwrite]\n  infill check <spec.ts>\n  infill emit <spec.ts>",
 		);
 		process.exit(1);
 	}
 	if (cmd === "check") process.exit(check(specPath));
+	if (cmd === "emit") {
+		const mod = (await import(pathToFileURL(resolve(specPath)).href)) as Record<
+			string,
+			unknown
+		>;
+		const { yaml, warnings } = emit(mod);
+		process.stdout.write(`${yaml}\n`);
+		for (const w of warnings) console.error(`⚠ ${w.path}: ${w.message}`);
+		return;
+	}
 
 	const specAbs = resolve(specPath);
 	const outPath = resolve(dirname(specAbs), "decisions.gen.ts");
