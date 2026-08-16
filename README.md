@@ -2,7 +2,7 @@
 
 Infill is a spec-driven development framework for people who still want to write code.
 
-Each spec you write is a tree of concepts, each describing something to build, with deliberate gaps left for your AI model to fill. Infill renders the spec into a model-facing document, scaffolds a decisions file, and type-checks the model's decisions against your spec. The AI's interpretation of the spec becomes something `tsc` verifies, not something you take on faith.
+Each spec you write is a tree of concepts, each describing something to build, with deliberate gaps left for your preferred AI model to fill. Infill renders the spec into a model-facing document, scaffolds a decisions file, and type-checks the model's decisions against your spec. The AI's interpretation of the spec becomes something `tsc` verifies, not something you take on faith.
 
 ## Example: an account
 
@@ -27,7 +27,7 @@ export const account = def("a signed-up user", {
 });
 ```
 
-Every unfilled node is a **gap** — a decision left to the model on purpose. `plan` is a `oneOf`: a closed choice the model must pick from, not invent around.
+Every unfilled node is a gap; a decision left to the model on purpose. `plan` is a `oneOf`: a closed choice the model must pick from, not invent around.
 
 ### 2. `infill gen` scaffolds a decisions file
 
