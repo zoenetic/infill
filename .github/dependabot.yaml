@@ -6,7 +6,6 @@ updates:
       - "/spec"
     schedule:
       interval: daily
-      day: sunday
     open-pull-requests-limit: 10
     groups:
       dev-dependencies:
@@ -18,11 +17,10 @@ updates:
 
   - package-ecosystem: github-actions
     directories:
-      - "/.github/workflows"
+      - "/"
     schedule:
       interval: daily
-      day: sunday
-    group:
+    groups:
       actions:
         patterns: ["*"]
 
