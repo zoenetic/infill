@@ -25,7 +25,7 @@ const howToRead = {
 		reference:
 			"Points to another named concept. Read that concept; it is not restated here.",
 		shape:
-			"Takes on another concept's structure. Parts here add to or replace those of the target.",
+			"Takes on another concept's structure and gaps. Parts here add new positions or narrow the target's — never dropping one, so a shape only ever refines.",
 		collection: "Some number of the inner concept.",
 		optional: "The inner concept, possibly absent.",
 		choice:

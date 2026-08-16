@@ -23,7 +23,7 @@ export const former = oneOf(
 			form: given("reference"),
 		}),
 		of: def(
-			"either takes another concept's shape and gaps to refine, or types a leaf value from a runtime token (String, Number, or Boolean) so the leaf's type survives from the spec into the model's code",
+			"either takes another concept's shape and gaps and narrows them — adding new parts or carving existing ones, never dropping a gap, so a refinement only ever conforms to its target — or types a leaf value from a runtime token (String, Number, or Boolean) so the leaf's type survives from the spec into the model's code",
 			{ target: ref(concept), form: given("shape") },
 		),
 		many: def("some number of an inner concept", {
@@ -63,7 +63,7 @@ export const conformance = def(
 );
 
 export const projection = def(
-	"the concrete type a spec projects into for real code, by form: named parts become an object of projected parts; a typed leaf becomes its type; a choice becomes its case-key union; a collection becomes an array of its element's projection; an optional becomes its value's projection or absent; a reference or shape projects through its target; a fact becomes its asserted value; an untyped gap stays open — so the typechecker enforces exactly as much of the code as the spec chose to type",
+	"the concrete type a spec projects into for real code, by form: named parts become an object of projected parts; a typed leaf becomes its type; a choice becomes its case-key union; a collection becomes an array of its element's projection; an optional becomes its value's projection or absent; a reference or shape projects through its target; a fact becomes its asserted value; an untyped gap stays open as `unknown` — so the typechecker enforces exactly as much of the code as the spec chose to type",
 );
 
 export const pipeline = def("how a spec becomes verified software, across two phases", {
