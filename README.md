@@ -2,16 +2,14 @@
 
 Infill is a spec-driven development framework for people who still want to write code.
 
-Each spec you write is a tree of concepts, each describing something to build, with deliberate gaps left for your preferred AI model to fill. Infill renders the spec into a model-facing document, scaffolds a decisions file, and type-checks the model's decisions against your spec. The AI's interpretation of the spec becomes something `tsc` verifies, not something you take on faith.
+Each spec you write is a tree of concepts, each describing something to build, with deliberate gaps left for your preferred AI model to fill. Infill renders the spec into a model-facing document, scaffolds a *decisions* file and type-checks the model's interpretation against your spec — then projects the spec into the concrete type your real code must satisfy. Both the model's interpretation and its code become something `tsc` verifies, not something you take on faith.
 
-## Example: an account
+The walkthrough below is one `account` spec, start to finish — runnable in [`examples/account/`](examples/account).
 
-*(The full, runnable version of this example lives in [`examples/account/`](examples/account).)*
-
-### 1. The spec you write — `spec.ts`
+## 1. The spec you write — `spec.ts`
 
 ```ts
-import { def, of, oneOf } from "infill";
+import { def, many, of, oneOf } from "infill";
 
 export const plan = oneOf("their subscription tier", {
 	free: def("no cost, limited usage"),
@@ -19,150 +17,103 @@ export const plan = oneOf("their subscription tier", {
 	enterprise: def("a custom contract"),
 });
 
-export const account = def("a signed-up user", {
-	email: def("how we reach them"),
-	displayName: def("what other users see"),
+export const account = def("a signed-up team account", {
+	displayName: of(String),
 	plan: of(plan),
-	seats: def("how many people the account covers"),
+	seats: of("how many people the account covers", Number),
+	admins: many("the admins who can manage billing, by email", of(String)),
+	features: many("the add-on features enabled for this account", of(String)),
 });
 ```
 
-Every unfilled node is a gap; a decision left to the model on purpose. `plan` is a `oneOf`: a closed choice the model must pick from, not invent around.
+Every unfilled node is a **gap** — a decision left to the model on purpose. `plan` is a `oneOf`: a closed choice. Leaves you *type* (`of(String)`, `of(Number)`) get their values checked in code; a bare `def("...")` stays a free-form gap. Note there are no comments: anything worth saying is a **description**, so it travels with the concept into the model-facing document instead of being lost in the source.
 
-### 2. `infill gen` scaffolds a decisions file
+## 2. `infill gen` scaffolds a decisions file
 
 ```bash
 infill gen spec.ts
 ```
 
-It writes `decisions.gen.ts` — a mirror of the spec that already conforms, as the starting point to narrow:
+It writes `decisions.gen.ts` — a mirror of the spec that already conforms, as the starting point to narrow. The `_account` line is the conformance check: it asserts, at the type level, that the decision narrows the spec.
 
 ```ts
-import { type Conforms, def, many, maybe, of, oneOf, pick, ref } from "infill";
-import * as spec from "./spec";
-
-export const account = def("a signed-up user", {
-	email: def("how we reach them"),
-	displayName: def("what other users see"),
+export const account = def("a signed-up team account", {
+	displayName: of(String),
 	plan: of(spec.plan),
-	seats: def("how many people the account covers"),
+	seats: of("how many people the account covers", Number),
+	admins: many("the admins who can manage billing, by email", of(String)),
+	features: many("the add-on features enabled for this account", of(String)),
 });
 export const _account: Conforms<typeof account, typeof spec.account> = true;
-
-export const plan = oneOf("their subscription tier", {
-	free: def("no cost, limited usage"),
-	pro: def("paid, full features"),
-	enterprise: def("a custom contract"),
-});
-export const _plan: Conforms<typeof plan, typeof spec.plan> = true;
 ```
 
-The `_account` / `_plan` lines are the conformance checks: each asserts, at the type level, that the decision narrows the spec.
+## 3. The model narrows the interpretation
 
-### 3. A model fills in the decisions
-
-Handed the rendered spec, a model narrowed the gaps into concrete decisions for a small team's paid account — this is real, unedited output:
+The one open interpretation here is the **choice** — the typed leaves are already settled. The model picks the plan, and `infill check` verifies it conforms:
 
 ```ts
-import { type Conforms, def, oneOf, pick } from "infill";
-import * as spec from "./spec";
-
-export const account = def("a signed-up user", {
-	email: def("the workspace owner's contact address", {
-		format: def("a valid RFC 5322 address"),
-		verified: def("confirmed via a click-through link before the account is active"),
-	}),
-	displayName: def("the team's public workspace name, 2-40 characters", {
-		unique: def("distinct across the tenant so teammates aren't confused"),
-	}),
 	plan: pick(spec.plan, "pro"),
-	seats: def("a fixed count of 5 paid member seats, one per teammate, billed monthly"),
-});
-export const _account: Conforms<typeof account, typeof spec.account> = true;
-
-export const plan = oneOf("their subscription tier", {
-	free: def("no cost, limited usage"),
-	pro: def("paid, full features"),
-	enterprise: def("a custom contract"),
-});
-export const _plan: Conforms<typeof plan, typeof spec.plan> = true;
 ```
-
-It decided the choice with `pick(spec.plan, "pro")`, fixed `seats`, and sharpened each prose gap — adding a sub-part only where it genuinely tightened the decision.
-
-### 4. `infill check` verifies — and rejects what doesn't
 
 ```bash
 infill check spec.ts
 # ✅ decisions conform
 ```
 
-`Conforms<Decision, Spec>` makes `tsc` **reject** any decision that contradicts the spec. Pick a case that doesn't exist —
-
-```ts
-	plan: pick(spec.plan, "vip"),
-```
-
-— and the check fails before a line of it ships:
+Pick a case that doesn't exist — `pick(spec.plan, "vip")` — and it fails before it ships:
 
 ```
 error TS2345: Argument of type '"vip"' is not assignable to parameter of type
 'CasesOf<Concept<".", {}, "enterprise" | "free" | "pro">>'.
 ```
 
-The model's freedom is bounded by your spec, and the boundary is checked, not hoped for.
+## 4. Build the code
 
-## Then: build the code
-
-Everything above stays in "spec space" — you refine the spec and verify the model's *interpretation*. A dev can live there for a while. When you're ready to write real code, `Shape` projects a spec into the concrete TypeScript type an implementation must satisfy, and the model writes ordinary code the compiler checks against the spec.
-
-*(Runnable in [`examples/route/`](examples/route).)*
-
-### The spec — typed where it matters
+Now leave spec space. `Shape` projects the decisions into the concrete type your implementation must satisfy:
 
 ```ts
-import { def, of, oneOf } from "infill";
-
-export const method = oneOf("the HTTP method", {
-	get: def("read a resource"),
-	post: def("create a resource"),
-	delete: def("remove a resource"),
-});
-
-export const route = def("an HTTP route", {
-	path: of<string>("the URL pattern, e.g. /users/:id"),
-	method: of(method),
-	authenticated: of<boolean>("whether a valid session is required"),
-});
+Shape<typeof decisions.account>
+// {
+//   displayName: string;
+//   plan: "pro";
+//   seats: number;
+//   admins: string[];
+//   features: string[];
+// }
 ```
 
-### `Shape` projects it into a type
-
-`Shape<typeof route>` is exactly:
-
-```ts
-{ path: string; method: "get" | "post" | "delete"; authenticated: boolean }
-```
-
-### The model writes ordinary code of that type
+The two compact `many(...)` lines in the spec become the actual lists in your code — and the model writes ordinary code of that type:
 
 ```ts
 import type { Shape } from "infill";
-import * as spec from "./spec";
+import * as decisions from "./decisions.gen";
 
-export const usersRoute: Shape<typeof spec.route> = {
-	path: "/users/:id",
-	method: "get",
-	authenticated: true,
+export const acme: Shape<typeof decisions.account> = {
+	displayName: "Acme Corp",
+	plan: "pro",
+	seats: 24,
+	admins: [
+		"founders@acme.dev",
+		"ops@acme.dev",
+		"security@acme.dev",
+		"billing@acme.dev",
+	],
+	features: [
+		"sso",
+		"audit-log",
+		"custom-domains",
+		"priority-support",
+		"data-residency",
+	],
 };
 ```
 
-`infill check` passes — and every value is enforced. A wrong method, a non-string path, or a non-boolean flag won't compile:
+`infill check` passes — and every value is enforced, down to each element. A wrong plan, a non-number seat count, or a non-string admin won't compile:
 
 ```
-error TS2322: Type '"patch"' is not assignable to type '"delete" | "get" | "post"'.
+error TS2322: Type '"startup"' is not assignable to type '"pro"'.
+error TS2322: Type 'string' is not assignable to type 'number'.
 error TS2322: Type 'number' is not assignable to type 'string'.
-error TS2322: Type 'string' is not assignable to type 'boolean'.
 ```
 
-Structure and closed choices are always enforced; leaf *values* are enforced wherever you typed them (`of<string>()`, `of<number>()`). You type as much of the implementation as you want the compiler to police — no more, no less.
+You wrote a 13-line spec and got 20 lines of typed, checked code — plus a verified decisions file. Structure and closed choices are always enforced; leaf *values* are enforced wherever you typed them. You police as much of the implementation as you chose to type — no more, no less.
