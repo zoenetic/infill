@@ -1,0 +1,11 @@
+[tools]
+betterleaks = "latest"
+node = "22"
+pnpm = "11"
+
+[hooks]
+postinstall = "mise generate git-pre-commit --write --task=pre-commit"
+
+[tasks.pre-commit]
+description = "scan staged changes for secrets"
+run = "betterleaks git --pre-commit --staged --redact --verbose"

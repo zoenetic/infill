@@ -1,3 +1,3 @@
 # infill
 
-Spec driven development for people who still want to write code.
+Infill is a spec-driven development framework for people who still want to write code.
