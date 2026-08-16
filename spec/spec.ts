@@ -59,7 +59,7 @@ export const spec = def(
 );
 
 export const conformance = def(
-	"the check that a decision only narrows the spec: a typed leaf keeps a type the spec allows, a choice resolves to one of the offered cases, and every part is covered — the typechecker resolves it, so a decision that contradicts the spec fails to compile",
+	"the check that a decision only narrows the spec: a typed leaf keeps a type the spec allows, a choice resolves to one of the offered cases, and every part is covered. Equivalently — and this is how the typechecker resolves it — the decision's projection is assignable to the spec's projection, so a decision that contradicts the spec fails to compile",
 );
 
 export const projection = def(
