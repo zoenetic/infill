@@ -5,7 +5,7 @@ const isConcept = (v: unknown): v is Concept<any, any> =>
 
 export const conceptNames = (mod: Record<string, unknown>): string[] =>
 	Object.entries(mod)
-		.filter(([, v]) => isConcept(v))
+		.filter(([k, v]) => k !== "default" && isConcept(v))
 		.map(([k]) => k);
 
 const str = (s: string) => JSON.stringify(s);
@@ -22,7 +22,7 @@ export function codegen(
 ): string {
 	const named = new Map<object, string>();
 	for (const [name, v] of Object.entries(mod))
-		if (isConcept(v)) named.set(v, name);
+		if (name !== "default" && isConcept(v)) named.set(v, name);
 	const emit = only ? new Set(only) : null;
 
 	const call = (fn: string, args: (string | undefined)[]) =>
