@@ -1,38 +1,30 @@
 import { def, given, many, maybe, of, oneOf, ref } from "infill";
 
-export const concept = def(
-	"infill's one node type; a spec is a tree of these",
-	{
-		name: of<string>(
-			"the key a concept is bound under — its module export name, or its fill key",
+export const concept = def("infill's one node type; a spec is a tree of these", {
+	name: of<string>(
+		"the key a concept is bound under — its module export name, or its fill key",
+	),
+	description: maybe(
+		of<string>(
+			"states the need here; absent when the name says enough on its own",
 		),
-		description: maybe(
-			of<string>(
-				"states the need here; absent when the name says enough on its own",
-			),
-		),
-	},
-);
+	),
+});
 
 export const former = oneOf(
 	"each former produces a kind of node from its own operands",
 	{
 		def: def(
 			"the broadest former; a concept, optionally carved into named parts",
-			{
-				form: given("concept"),
-			},
+			{ form: given("concept") },
 		),
 		ref: def("points at another concept without inheriting its gaps", {
 			target: ref(concept),
 			form: given("reference"),
 		}),
 		of: def(
-			"takes another concept's shape and gaps, and may refine it with parts",
-			{
-				target: ref(concept),
-				form: given("shape"),
-			},
+			"either takes another concept's shape and gaps to refine, or types a leaf value from a runtime token (like String) so the leaf's type survives from the spec into the model's code",
+			{ target: ref(concept), form: given("shape") },
 		),
 		many: def("some number of an inner concept", {
 			inner: of(concept),
@@ -63,46 +55,57 @@ export const primitives = def("the primitives infill is built from", {
 
 export const spec = def(
 	"what the human author writes; bound concepts that may be narrowed",
-	{
-		concepts: many(of(concept)),
-	},
+	{ concepts: many(of(concept)) },
 );
 
-export const pipeline = def(
-	"from spec to a generated output the model can read and write",
-	{
-		spec: ref(spec),
-		artifact: def(
-			"the model-facing rendering the model reads; its keys are its own namespace, separate from these concept names — version surfaces as the top-level `infill:` key and legend as `howToRead`",
-			{
-				version: given(1),
-				root: ref(
-					"the spec's entry-point concept; present when the spec sets a default export",
-					concept,
-				),
-				legend: given(
-					"model-facing instructions on how to read gaps, names, and forms",
-				),
-				concepts: given(
-					"every named concept in the spec, keyed by name; each rendered as a node — its path, form, description or name-only marker, generated reading and gap lines, and the parts, element, or cases its form carries",
-				),
-			},
-		),
-		decisions: of(
-			"decisions made by the model, which the typechecker can verify against the spec",
-			spec,
-		),
-		cli: def("the infill command line", {
-			commands: def({
-				gen: def(
-					"scaffold or additively update the decisions file from a spec",
-				),
-				check: def("run the conformance check and report any issues"),
-				emit: def("render a spec's model-facing artifact"),
-			}),
-		}),
-	},
+export const conformance = def(
+	"the check that a decision only narrows the spec: a typed leaf keeps a type the spec allows, a choice resolves to one of the offered cases, and every part is covered — the typechecker resolves it, so a decision that contradicts the spec fails to compile",
 );
+
+export const projection = def(
+	"the concrete type a spec projects into for real code: named parts become an object, a typed leaf becomes its type, a choice becomes its case-key union, and an untyped gap stays open — so the typechecker enforces exactly as much of the code as the spec chose to type",
+);
+
+export const pipeline = def("how a spec becomes verified software, across two phases", {
+	spec: ref(spec),
+	artifact: def(
+		"the model-facing rendering the model reads; its keys are its own namespace, separate from these concept names — version surfaces as the top-level `infill:` key and legend as `howToRead`",
+		{
+			version: given(1),
+			root: ref(
+				"the spec's entry-point concept; present when the spec sets a default export",
+				concept,
+			),
+			legend: given(
+				"model-facing instructions on how to read gaps, names, and forms",
+			),
+			concepts: given(
+				"every named concept in the spec, keyed by name; each a node — its path, form, a type for a typed leaf, description or name-only marker, generated reading and gap lines, and the parts, element, or cases its form carries",
+			),
+		},
+	),
+	refine: def(
+		"phase one, still in spec space: the model narrows the spec's gaps into decisions, and conformance verifies each narrowing",
+		{
+			decisions: of("the model's narrowings of the spec's gaps", spec),
+			check: ref(conformance),
+		},
+	),
+	build: def(
+		"phase two, in code: the spec projects into a concrete type and the model writes real implementation code the typechecker holds to it",
+		{
+			shape: ref(projection),
+			code: def("the implementation, ordinary code written to the projected type"),
+		},
+	),
+	cli: def("the infill command line", {
+		commands: def({
+			gen: def("scaffold or additively update the decisions file from a spec"),
+			check: def("run the conformance check and report any issues"),
+			emit: def("render a spec's model-facing artifact"),
+		}),
+	}),
+});
 
 export const infill = def(
 	"a typescript framework and cli for spec-driven development that makes typescript software",
@@ -117,7 +120,9 @@ export const infill = def(
 			namesAreContent: given(
 				"a concept's name is part of its content, not just an identifier",
 			),
-			typeChecked: given("decisions must conform to the spec, verified by tsc"),
+			typeChecked: given(
+				"both halves are held by the typechecker: decisions must conform to the spec, and code must satisfy the spec's projection",
+			),
 		}),
 		primitives: ref(primitives),
 		pipeline: ref(pipeline),
