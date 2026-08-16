@@ -111,3 +111,58 @@ error TS2345: Argument of type '"vip"' is not assignable to parameter of type
 ```
 
 The model's freedom is bounded by your spec, and the boundary is checked, not hoped for.
+
+## Then: build the code
+
+Everything above stays in "spec space" — you refine the spec and verify the model's *interpretation*. A dev can live there for a while. When you're ready to write real code, `Shape` projects a spec into the concrete TypeScript type an implementation must satisfy, and the model writes ordinary code the compiler checks against the spec.
+
+*(Runnable in [`examples/route/`](examples/route).)*
+
+### The spec — typed where it matters
+
+```ts
+import { def, of, oneOf } from "infill";
+
+export const method = oneOf("the HTTP method", {
+	get: def("read a resource"),
+	post: def("create a resource"),
+	delete: def("remove a resource"),
+});
+
+export const route = def("an HTTP route", {
+	path: of<string>("the URL pattern, e.g. /users/:id"),
+	method: of(method),
+	authenticated: of<boolean>("whether a valid session is required"),
+});
+```
+
+### `Shape` projects it into a type
+
+`Shape<typeof route>` is exactly:
+
+```ts
+{ path: string; method: "get" | "post" | "delete"; authenticated: boolean }
+```
+
+### The model writes ordinary code of that type
+
+```ts
+import type { Shape } from "infill";
+import * as spec from "./spec";
+
+export const usersRoute: Shape<typeof spec.route> = {
+	path: "/users/:id",
+	method: "get",
+	authenticated: true,
+};
+```
+
+`infill check` passes — and every value is enforced. A wrong method, a non-string path, or a non-boolean flag won't compile:
+
+```
+error TS2322: Type '"patch"' is not assignable to type '"delete" | "get" | "post"'.
+error TS2322: Type 'number' is not assignable to type 'string'.
+error TS2322: Type 'string' is not assignable to type 'boolean'.
+```
+
+Structure and closed choices are always enforced; leaf *values* are enforced wherever you typed them (`of<string>()`, `of<number>()`). You type as much of the implementation as you want the compiler to police — no more, no less.
