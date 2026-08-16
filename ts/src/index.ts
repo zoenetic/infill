@@ -16,3 +16,4 @@ export { of } from "./of";
 export { oneOf } from "./oneOf";
 export { pick } from "./pick";
 export { ref } from "./ref";
+export type { Shape } from "./shape";
