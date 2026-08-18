@@ -267,8 +267,8 @@ export function emit(mod: Record<string, unknown>): {
 		concepts[name] = node(c as Concept<any, any>, name);
 
 	const doc = root
-		? { infill: 1, root, howToRead, concepts }
-		: { infill: 1, howToRead, concepts };
+		? { codeform: 1, root, howToRead, concepts }
+		: { codeform: 1, howToRead, concepts };
 	const yaml = stringify(doc, { lineWidth: 0 });
 	return { yaml, warnings };
 }

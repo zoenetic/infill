@@ -1,15 +1,15 @@
-# infill
+# codeform
 
-Infill is a spec-driven development framework for people who still want to write code.
+Codeform is a spec-driven development framework for people who still want to write code.
 
-Each spec you write is a tree of concepts, each describing something to build, with deliberate gaps left for your preferred AI model to fill. Infill renders the spec into a model-facing document, scaffolds a *decisions* file and type-checks the model's interpretation against your spec — then projects the spec into the concrete type your real code must satisfy. Both the model's interpretation and its code become something `tsc` verifies, not something you take on faith.
+Each spec you write is a tree of concepts, each describing something to build, with deliberate gaps left for your preferred AI model to fill. Codeform renders the spec into a model-facing document, scaffolds a *decisions* file and type-checks the model's interpretation against your spec — then projects the spec into the concrete type your real code must satisfy. Both the model's interpretation and its code become something `tsc` verifies, not something you take on faith.
 
 The walkthrough below is one `account` spec, start to finish — runnable in [`examples/account/`](examples/account).
 
 ## 1. The spec you write — `spec.ts`
 
 ```ts
-import { def, many, of, oneOf } from "infill";
+import { def, many, of, oneOf } from "codeform";
 
 export const plan = oneOf("their subscription tier", {
 	free: def("no cost, limited usage"),
@@ -28,10 +28,10 @@ export const account = def("a signed-up team account", {
 
 Every unfilled node is a **gap** — a decision left to the model on purpose. `plan` is a `oneOf`: a closed choice. Leaves you *type* (`of(String)`, `of(Number)`) get their values checked in code; a bare `def("...")` stays a free-form gap. Note there are no comments: anything worth saying is a **description**, so it travels with the concept into the model-facing document instead of being lost in the source.
 
-## 2. `infill gen` scaffolds a decisions file
+## 2. `codeform gen` scaffolds a decisions file
 
 ```bash
-infill gen spec.ts
+codeform gen spec.ts
 ```
 
 It writes `decisions.gen.ts` — a mirror of the spec that already conforms, as the starting point to narrow. The `_account` line is the conformance check: it asserts, at the type level, that the decision narrows the spec.
@@ -49,14 +49,14 @@ export const _account: Conforms<typeof account, typeof spec.account> = true;
 
 ## 3. The model narrows the interpretation
 
-The one open interpretation here is the **choice** — the typed leaves are already settled. The model picks the plan, and `infill check` verifies it conforms:
+The one open interpretation here is the **choice** — the typed leaves are already settled. The model picks the plan, and `codeform check` verifies it conforms:
 
 ```ts
 	plan: pick(spec.plan, "pro"),
 ```
 
 ```bash
-infill check spec.ts
+codeform check spec.ts
 # ✅ decisions conform
 ```
 
@@ -85,7 +85,7 @@ Shape<typeof decisions.account>
 The two compact `many(...)` lines in the spec become the actual lists in your code — and the model writes ordinary code of that type:
 
 ```ts
-import type { Shape } from "infill";
+import type { Shape } from "codeform";
 import * as decisions from "./decisions.gen";
 
 export const acme: Shape<typeof decisions.account> = {
@@ -108,7 +108,7 @@ export const acme: Shape<typeof decisions.account> = {
 };
 ```
 
-`infill check` passes — and every value is enforced, down to each element. A wrong plan, a non-number seat count, or a non-string admin won't compile:
+`codeform check` passes — and every value is enforced, down to each element. A wrong plan, a non-number seat count, or a non-string admin won't compile:
 
 ```
 error TS2322: Type '"startup"' is not assignable to type '"pro"'.

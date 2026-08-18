@@ -1,5 +1,5 @@
 /**
- * `infill` - spec driven development for people who still want to write code.
+ * `codeform` - spec driven development for people who still want to write code.
  *
  * Build specifications out of `def`, `ref`, `of`, `many`, `maybe` and `oneOf` concepts,
  * then use {@link emit} to render them as a self-describing document that names each

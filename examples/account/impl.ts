@@ -1,5 +1,5 @@
-import type { Shape } from "infill";
-import * as decisions from "./decisions.gen";
+import type { Shape } from "codeform";
+import type * as decisions from "./decisions.gen";
 
 export const acme: Shape<typeof decisions.account> = {
 	displayName: "Acme Corp",

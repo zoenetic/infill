@@ -1,15 +1,18 @@
-import { def, given, many, maybe, of, oneOf, ref } from "infill";
+import { def, given, many, maybe, of, oneOf, ref } from "codeform";
 
-export const concept = def("infill's one node type; a spec is a tree of these", {
-	name: of<string>(
-		"the key a concept is bound under — its module export name, or its fill key",
-	),
-	description: maybe(
-		of<string>(
-			"states the need here; absent when the name says enough on its own",
+export const concept = def(
+	"codeform's one node type; a spec is a tree of these",
+	{
+		name: of<string>(
+			"the key a concept is bound under — its module export name, or its fill key",
 		),
-	),
-});
+		description: maybe(
+			of<string>(
+				"states the need here; absent when the name says enough on its own",
+			),
+		),
+	},
+);
 
 export const former = oneOf(
 	"each former produces a kind of node from its own operands",
@@ -48,7 +51,7 @@ export const former = oneOf(
 	},
 );
 
-export const primitives = def("the primitives infill is built from", {
+export const primitives = def("the primitives codeform is built from", {
 	concept: ref(concept),
 	former: ref(former),
 });
@@ -66,48 +69,55 @@ export const projection = def(
 	"the concrete type a spec projects into for real code, by form: named parts become an object of projected parts; a typed leaf becomes its type; a choice becomes its case-key union; a collection becomes an array of its element's projection; an optional becomes its value's projection or absent; a reference or shape projects through its target; a fact becomes its asserted value; an untyped gap stays open as `unknown` — so the typechecker enforces exactly as much of the code as the spec chose to type",
 );
 
-export const pipeline = def("how a spec becomes verified software, across two phases", {
-	spec: ref(spec),
-	artifact: def(
-		"the model-facing rendering the model reads; its keys are its own namespace, separate from these concept names — version surfaces as the top-level `infill:` key and legend as `howToRead`",
-		{
-			version: given(1),
-			root: ref(
-				"the spec's entry-point concept; present when the spec sets a default export",
-				concept,
-			),
-			legend: given(
-				"model-facing instructions on how to read gaps, names, and forms",
-			),
-			concepts: given(
-				"every named concept in the spec, keyed by name; each a node — its path, form, a type for a typed leaf, description or name-only marker, generated reading and gap lines, and the parts, element, or cases its form carries",
-			),
-		},
-	),
-	refine: def(
-		"phase one, still in spec space: the model narrows the spec's gaps into decisions, and conformance verifies each narrowing",
-		{
-			decisions: of("the model's narrowings of the spec's gaps", spec),
-			check: ref(conformance),
-		},
-	),
-	build: def(
-		"phase two, in code: the spec projects into a concrete type and the model writes real implementation code the typechecker holds to it",
-		{
-			shape: ref(projection),
-			code: def("the implementation, ordinary code written to the projected type"),
-		},
-	),
-	cli: def("the infill command line", {
-		commands: def({
-			gen: def("scaffold or additively update the decisions file from a spec"),
-			check: def("run the conformance check and report any issues"),
-			emit: def("render a spec's model-facing artifact"),
+export const pipeline = def(
+	"how a spec becomes verified software, across two phases",
+	{
+		spec: ref(spec),
+		artifact: def(
+			"the model-facing rendering the model reads; its keys are its own namespace, separate from these concept names — version surfaces as the top-level `codeform:` key and legend as `howToRead`",
+			{
+				version: given(1),
+				root: ref(
+					"the spec's entry-point concept; present when the spec sets a default export",
+					concept,
+				),
+				legend: given(
+					"model-facing instructions on how to read gaps, names, and forms",
+				),
+				concepts: given(
+					"every named concept in the spec, keyed by name; each a node — its path, form, a type for a typed leaf, description or name-only marker, generated reading and gap lines, and the parts, element, or cases its form carries",
+				),
+			},
+		),
+		refine: def(
+			"phase one, still in spec space: the model narrows the spec's gaps into decisions, and conformance verifies each narrowing",
+			{
+				decisions: of("the model's narrowings of the spec's gaps", spec),
+				check: ref(conformance),
+			},
+		),
+		build: def(
+			"phase two, in code: the spec projects into a concrete type and the model writes real implementation code the typechecker holds to it",
+			{
+				shape: ref(projection),
+				code: def(
+					"the implementation, ordinary code written to the projected type",
+				),
+			},
+		),
+		cli: def("the codeform command line", {
+			commands: def({
+				gen: def(
+					"scaffold or additively update the decisions file from a spec",
+				),
+				check: def("run the conformance check and report any issues"),
+				emit: def("render a spec's model-facing artifact"),
+			}),
 		}),
-	}),
-});
+	},
+);
 
-export const infill = def(
+export const codeform = def(
 	"a typescript framework and cli for spec-driven development that makes typescript software",
 	{
 		principles: def({
@@ -129,4 +139,4 @@ export const infill = def(
 	},
 );
 
-export default infill;
+export default codeform;

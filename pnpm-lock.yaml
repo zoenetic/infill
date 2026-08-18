@@ -14,7 +14,7 @@ importers:
 
   examples:
     dependencies:
-      infill:
+      codeform:
         specifier: workspace:*
         version: link:../ts
     devDependencies:
@@ -24,7 +24,7 @@ importers:
 
   spec:
     dependencies:
-      infill:
+      codeform:
         specifier: workspace:*
         version: link:../ts
 
