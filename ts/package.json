@@ -26,10 +26,18 @@
   },
   "dependencies": {
     "tsx": "^4.23.12",
-    "typescript": "catalog:",
     "yaml": "^2.9.0"
   },
+  "peerDependencies": {
+    "typescript": ">=5"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
+  },
   "devDependencies": {
-    "@types/node": "^26.2.0"
+    "@types/node": "^26.2.0",
+    "typescript": "catalog:"
   }
 }

@@ -28,7 +28,15 @@ function check(specPath: string): number {
 		);
 		return 1;
 	}
-	const tscBin = resolve(dirname(require.resolve("typescript")), "../bin/tsc");
+	let tscBin: string;
+	try {
+		tscBin = resolve(dirname(require.resolve("typescript")), "../bin/tsc");
+	} catch {
+		console.error(
+			"✗ `codeform check` needs typescript — install it (npm i -D typescript)",
+		);
+		return 1;
+	}
 	const { status } = spawnSync(
 		process.execPath,
 		[tscBin, "--noEmit", "-p", dir],
