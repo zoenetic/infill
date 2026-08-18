@@ -2,7 +2,7 @@
 // runtime. `@ts-expect-error` asserts a decision is correctly *rejected*; if the
 // check ever stops rejecting it, the unused directive fails the build.
 
-import { type Conforms, conforms, def, given, of, oneOf, pick } from "./index";
+import { type Conforms, conforms, def, given, of, oneOf, pick } from "./index.js";
 
 const status = oneOf({ active: def("active"), inactive: def("inactive") });
 

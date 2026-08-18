@@ -1,5 +1,5 @@
-import type { Fill } from "./fill";
-import { type Gap, gap } from "./gap";
+import type { Fill } from "./fill.js";
+import { type Gap, gap } from "./gap.js";
 
 /** Global-registry so the tag survives module duplication (codegen/CLI
  *  dynamically import the spec; a plain Symbol() would differ per instance). */

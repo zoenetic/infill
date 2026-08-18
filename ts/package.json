@@ -1,6 +1,6 @@
 {
   "name": "codeform",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Spec driven development for people who still want to write code.",
   "license": "MIT",
   "repository": {
@@ -12,32 +12,26 @@
   "bugs": "https://github.com/zoenetic/codeform/issues",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
   },
-  "types": "./src/index.ts",
-  "bin": {
-    "codeform": "./bin/codeform.mjs"
-  },
-  "files": ["src", "bin"],
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "files": ["dist"],
   "scripts": {
-    "prepack": "cp ../README.md README.md && cp ../LICENSE LICENSE",
+    "build": "tsc -p tsconfig.build.json",
+    "prepack": "tsc -p tsconfig.build.json && cp ../README.md README.md && cp ../LICENSE LICENSE",
     "postpack": "rm -f README.md LICENSE",
     "test": "tsc --noEmit && tsx --test src/*.test.ts"
   },
   "dependencies": {
-    "tsx": "^4.23.12",
     "yaml": "^2.9.0"
-  },
-  "peerDependencies": {
-    "typescript": ">=5"
-  },
-  "peerDependenciesMeta": {
-    "typescript": {
-      "optional": true
-    }
   },
   "devDependencies": {
     "@types/node": "^26.2.0",
+    "tsx": "^4.23.12",
     "typescript": "catalog:"
   }
 }

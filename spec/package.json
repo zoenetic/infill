@@ -5,5 +5,8 @@
 	"private": true,
 	"dependencies": {
 		"codeform": "workspace:*"
+	},
+	"devDependencies": {
+		"codeform-cli": "workspace:*"
 	}
 }

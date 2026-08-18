@@ -1,5 +1,5 @@
-import { type Concept, former, type TypeOf } from "./concept";
-import type { Gap } from "./gap";
+import { type Concept, former, type TypeOf } from "./concept.js";
+import type { Gap } from "./gap.js";
 
 /** The cases a keyed choice offers */
 export type CasesOf<C> = TypeOf<C> & string;

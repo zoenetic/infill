@@ -1,6 +1,6 @@
-import { type Concept, former } from "./concept";
-import type { Fill } from "./fill";
-import type { Gap, Gaps } from "./gap";
+import { type Concept, former } from "./concept.js";
+import type { Fill } from "./fill.js";
+import type { Gap, Gaps } from "./gap.js";
 
 /** Creates a totally unspecified `def` concept: a bare name with no description and no parts. */
 export function def(): Concept<Gap>;

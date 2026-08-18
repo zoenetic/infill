@@ -1,0 +1,39 @@
+{
+  "name": "codeform-cli",
+  "version": "0.2.0",
+  "description": "The codeform CLI: scaffold a decisions file, check conformance, and emit the model-facing document.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zoenetic/codeform.git",
+    "directory": "cli"
+  },
+  "homepage": "https://github.com/zoenetic/codeform#readme",
+  "bugs": "https://github.com/zoenetic/codeform/issues",
+  "type": "module",
+  "bin": {
+    "codeform": "./bin/codeform.mjs"
+  },
+  "files": ["src", "bin"],
+  "scripts": {
+    "prepack": "cp ../README.md README.md && cp ../LICENSE LICENSE",
+    "postpack": "rm -f README.md LICENSE",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "codeform": "workspace:*",
+    "tsx": "^4.23.12"
+  },
+  "peerDependencies": {
+    "typescript": ">=5"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "typescript": "catalog:"
+  }
+}

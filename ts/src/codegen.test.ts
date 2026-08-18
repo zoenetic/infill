@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { codegen, conceptNames } from "./codegen";
-import { def } from "./def";
-import { of } from "./of";
-import { oneOf } from "./oneOf";
-import { pick } from "./pick";
-import { ref } from "./ref";
+import { codegen, conceptNames } from "./codegen.js";
+import { def } from "./def.js";
+import { of } from "./of.js";
+import { oneOf } from "./oneOf.js";
+import { pick } from "./pick.js";
+import { ref } from "./ref.js";
 
 function fixture() {
 	const status = oneOf({ active: def("usable"), inactive: def("closed") });

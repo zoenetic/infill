@@ -1,5 +1,5 @@
-import type { Concept } from "./concept";
-import type { Fill } from "./fill";
+import type { Concept } from "./concept.js";
+import type { Fill } from "./fill.js";
 
 /** Property key holding a {@link Concept}'s gap paths ({@link Gap}) at the type level only; never set at runtime. */
 export const gap: unique symbol = Symbol("gap");

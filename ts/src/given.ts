@@ -1,5 +1,5 @@
-import { type Concept, former } from "./concept";
-import type { Gap } from "./gap";
+import { type Concept, former } from "./concept.js";
+import type { Gap } from "./gap.js";
 
 /**
  * Asserts decided content — the "this is so" to `def`'s "this is yours". `given`

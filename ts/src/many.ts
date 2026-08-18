@@ -1,5 +1,5 @@
-import { type Concept, former, type TypeOf } from "./concept";
-import type { Gap } from "./gap";
+import { type Concept, former, type TypeOf } from "./concept.js";
+import type { Gap } from "./gap.js";
 
 /** Creates a `many` concept: an unspecified number of `inner` elements, with no description. */
 export function many<Inner extends Concept<any, any>>(
