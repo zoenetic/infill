@@ -1,5 +1,5 @@
 {
-  "name": "infill",
+  "name": "codeform",
   "version": "0.1.2",
   "description": "Spec driven development for people who still want to write code.",
   "type": "module",
@@ -8,7 +8,7 @@
   },
   "types": "./src/index.ts",
   "bin": {
-    "infill": "./bin/infill.mjs"
+    "codeform": "./bin/codeform.mjs"
   },
   "files": ["src", "bin"],
   "scripts": {

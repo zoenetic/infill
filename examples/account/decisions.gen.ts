@@ -1,4 +1,4 @@
-import { type Conforms, def, many, of, oneOf, pick } from "infill";
+import { type Conforms, def, many, of, oneOf, pick } from "codeform";
 import * as spec from "./spec";
 
 export const account = def("a signed-up team account", {

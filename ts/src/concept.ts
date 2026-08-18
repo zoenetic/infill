@@ -5,7 +5,7 @@ import { type Gap, gap } from "./gap";
  *  dynamically import the spec; a plain Symbol() would differ per instance). */
 
 /** Property key holding a {@link Concept}'s {@link Former}. Kept as a symbol so it never collides with a fill part named `former`. */
-export const former: unique symbol = Symbol.for("infill.former");
+export const former: unique symbol = Symbol.for("codeform.former");
 
 /** The discriminant naming which shape a {@link Concept} takes: a definition, a reference, a re-shaping, a collection, an optional, or a choice. */
 export type Former =
@@ -18,7 +18,7 @@ export type Former =
 	| "given";
 
 /** Phantom property key used to carry a {@link Concept}'s inferred value type ({@link TypeOf}) at the type level only; never set at runtime. */
-export const type: unique symbol = Symbol.for("infill.type");
+export const type: unique symbol = Symbol.for("codeform.type");
 
 /**
  * A specification node describing something to produce. Every concept constructor

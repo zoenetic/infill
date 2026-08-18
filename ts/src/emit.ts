@@ -123,7 +123,8 @@ export function emit(mod: Record<string, unknown>): {
 		const parts = c.fill ? Object.keys(c.fill).length : 0;
 		const name = label(path);
 		const tn = tokenName(c);
-		if (tn) return `A ${tn} — the type is fixed; the value is yours to provide.`;
+		if (tn)
+			return `A ${tn} — the type is fixed; the value is yours to provide.`;
 		switch (kindOf(c)) {
 			case "def":
 				return parts === 0
@@ -267,8 +268,8 @@ export function emit(mod: Record<string, unknown>): {
 		concepts[name] = node(c as Concept<any, any>, name);
 
 	const doc = root
-		? { infill: 1, root, howToRead, concepts }
-		: { infill: 1, howToRead, concepts };
+		? { codeform: 1, root, howToRead, concepts }
+		: { codeform: 1, howToRead, concepts };
 	const yaml = stringify(doc, { lineWidth: 0 });
 	return { yaml, warnings };
 }

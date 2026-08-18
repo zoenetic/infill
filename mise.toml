@@ -1,5 +1,6 @@
 [tools]
 betterleaks = "latest"
+gh = "latest"
 node = "22"
 pnpm = "11"
 

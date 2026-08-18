@@ -27,14 +27,14 @@ async function main() {
 	const { values, positionals } = parseArgs({
 		allowPositionals: true,
 		options: {
-			lib: { type: "string", default: "infill" },
+			lib: { type: "string", default: "codeform" },
 			overwrite: { type: "boolean", default: false },
 		},
 	});
 	const [cmd, specPath] = positionals;
 	if ((cmd !== "gen" && cmd !== "check" && cmd !== "emit") || !specPath) {
 		console.error(
-			"Usage:\n  infill gen <spec.ts> [--lib <specifier>] [--overwrite]\n  infill check <spec.ts>\n  infill emit <spec.ts>",
+			"Usage:\n  codeform gen <spec.ts> [--lib <specifier>] [--overwrite]\n  codeform check <spec.ts>\n  codeform emit <spec.ts>",
 		);
 		process.exit(1);
 	}

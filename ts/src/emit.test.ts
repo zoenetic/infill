@@ -22,7 +22,7 @@ test("emit renders header, legend, and per-node fields", () => {
 	const { yaml } = emit(fixture() as Record<string, unknown>);
 	const doc = parse(yaml);
 
-	assert.equal(doc.infill, 1);
+	assert.equal(doc.codeform, 1);
 	assert.deepEqual(Object.keys(doc.howToRead.forms).sort(), [
 		"choice",
 		"collection",
