@@ -7,7 +7,6 @@
 		"codeform": "workspace:*"
 	},
 	"devDependencies": {
-		"@types/node": "^22",
-		"codeform-cli": "workspace:*"
+		"@types/node": "^22"
 	}
 }

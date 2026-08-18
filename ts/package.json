@@ -19,7 +19,10 @@
   },
   "types": "./dist/index.d.ts",
   "sideEffects": false,
-  "files": ["dist"],
+  "bin": {
+    "codeform": "./bin/codeform.mjs"
+  },
+  "files": ["dist", "bin"],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "prepack": "tsc -p tsconfig.build.json && cp ../README.md README.md && cp ../LICENSE LICENSE",
@@ -27,11 +30,14 @@
     "test": "tsc --noEmit && tsx --test src/*.test.ts"
   },
   "dependencies": {
+    "tsx": "^4.23.12",
     "yaml": "^2.9.0"
+  },
+  "peerDependencies": {
+    "typescript": ">=5"
   },
   "devDependencies": {
     "@types/node": "^26.2.0",
-    "tsx": "^4.23.12",
     "typescript": "catalog:"
   }
 }

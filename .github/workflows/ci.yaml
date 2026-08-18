@@ -19,20 +19,16 @@ jobs:
       - run: corepack enable
       - run: pnpm install --frozen-lockfile
 
-      # The library ships compiled JS; the CLI, self-spec and examples all
-      # import it, so build it before anything downstream resolves `codeform`.
-      - name: build library
+      # codeform ships compiled JS; the self-spec and examples import it and use
+      # its bin, so build it before anything downstream resolves `codeform`.
+      - name: build
         run: pnpm -C ts build
 
-      - name: library — typecheck + unit tests
+      - name: typecheck + unit tests
         working-directory: ts
         run: |
           pnpm exec tsc --noEmit
           pnpm exec tsx --test src/*.test.ts
-
-      - name: cli — typecheck
-        working-directory: cli
-        run: pnpm exec tsc --noEmit
 
       - name: self-spec compiles and emits
         working-directory: spec
