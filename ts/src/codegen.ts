@@ -82,6 +82,14 @@ export function codegen(
 				return call("maybe", [d, expr(c.inner!, ind)]);
 			case "oneOf": {
 				const cs = c.cases;
+				// A `pick` is a oneOf carrying `to` (its origin choice) and a
+				// single case: round-trip it as pick(origin, key). The generic
+				// single-case oneOf below would inline a copy of the case and
+				// lose the linkage to the choice it narrows.
+				if (c.to && cs && !Array.isArray(cs)) {
+					const [key] = Object.keys(cs);
+					return call("pick", [ref(c.to), str(key)]);
+				}
 				if (Array.isArray(cs))
 					return call("oneOf", [d, ...cs.map((k) => expr(k, ind))]);
 				if (cs)

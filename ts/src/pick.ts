@@ -12,6 +12,13 @@ export function pick<C extends Concept<any, any>, K extends CasesOf<C>>(
 	const cases = (choice.cases ?? {}) as Record<string, Concept<any, any>>;
 	return {
 		[former]: "oneOf",
+		// Inherit the choice's description (a pick of `plan` is still "the plan")
+		// and remember the origin choice, so codegen can round-trip this as
+		// pick(origin, key) rather than a hand-rolled single-case oneOf. The
+		// description is derived, not authored, so it need not survive in the
+		// regenerated call — re-running pick re-derives it from the origin.
+		description: choice.description,
+		to: choice,
 		cases: { [key]: cases[key] },
 	} as unknown as Concept<Gap, {}, K>;
 }

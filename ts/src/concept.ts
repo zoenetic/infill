@@ -37,7 +37,7 @@ export interface Concept<
 	readonly [former]: Former;
 	readonly description?: string;
 	readonly fill?: F;
-	/** Present on `ref` concepts: the concept being pointed at. */
+	/** Present on `ref` concepts (the concept pointed at) and on `pick` results (the origin choice being narrowed, so it can round-trip). */
 	readonly to?: Concept<any, any>;
 	/** Present on `of` concepts: the concept whose shape is taken on. */
 	readonly from?: Concept<any, any>;
