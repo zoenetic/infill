@@ -1,6 +1,6 @@
-import { type Concept, former, type TypeOf } from "./concept";
-import type { Fill } from "./fill";
-import type { Gap, GapOf, Gaps } from "./gap";
+import { type Concept, former, type TypeOf } from "./concept.js";
+import type { Fill } from "./fill.js";
+import type { Gap, GapOf, Gaps } from "./gap.js";
 
 /** Extracts the {@link Fill} of concept `C`, defaulting to `{}` if it has none. */
 type FillOf<C> = C extends Concept<any, infer F, any> ? F : {};

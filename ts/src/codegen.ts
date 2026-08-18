@@ -1,4 +1,4 @@
-import { type Concept, former } from "./concept";
+import { type Concept, former } from "./concept.js";
 
 const isConcept = (v: unknown): v is Concept<any, any> =>
 	typeof v === "object" && v !== null && former in v;

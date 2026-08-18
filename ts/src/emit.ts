@@ -1,5 +1,5 @@
 import { stringify } from "yaml";
-import { type Concept, type Former, former } from "./concept";
+import { type Concept, type Former, former } from "./concept.js";
 
 /** The human readable name for the 'form' produced by a given {@link Former} in emitted output. */
 const FORM: Record<Former, string> = {

@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { parse } from "yaml";
-import { emit } from "./emit";
-import { def, given, many, of, oneOf, ref } from "./index";
+import { emit } from "./emit.js";
+import { def, given, many, of, oneOf, ref } from "./index.js";
 
 function fixture() {
 	const status = oneOf({ active: def("usable"), inactive: def("closed") });

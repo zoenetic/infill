@@ -1,7 +1,7 @@
 // Type-level tests for `Shape`: checked by `tsc --noEmit`. `@ts-expect-error`
 // asserts that a value which violates the spec is correctly rejected.
 
-import { def, maybe, of, oneOf, pick, type Shape } from "./index";
+import { def, maybe, of, oneOf, pick, type Shape } from "./index.js";
 
 const plan = oneOf({
 	free: def("no cost"),

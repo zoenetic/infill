@@ -5,15 +5,15 @@
  * then use {@link emit} to render them as a self-describing document that names each
  * concept's gaps for a human or AI to fill in.
  */
-export { codegen } from "./codegen";
-export { type Conforms, conforms } from "./conforms";
-export { def } from "./def";
-export { emit } from "./emit";
-export { given } from "./given";
-export { many } from "./many";
-export { maybe } from "./maybe";
-export { of } from "./of";
-export { oneOf } from "./oneOf";
-export { pick } from "./pick";
-export { ref } from "./ref";
-export type { Shape } from "./shape";
+export { codegen, conceptNames } from "./codegen.js";
+export { type Conforms, conforms } from "./conforms.js";
+export { def } from "./def.js";
+export { emit } from "./emit.js";
+export { given } from "./given.js";
+export { many } from "./many.js";
+export { maybe } from "./maybe.js";
+export { of } from "./of.js";
+export { oneOf } from "./oneOf.js";
+export { pick } from "./pick.js";
+export { ref } from "./ref.js";
+export type { Shape } from "./shape.js";

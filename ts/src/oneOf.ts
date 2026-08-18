@@ -1,5 +1,5 @@
-import { type Concept, former } from "./concept";
-import type { Gap } from "./gap";
+import { type Concept, former } from "./concept.js";
+import type { Gap } from "./gap.js";
 
 type Cases = Record<string, Concept<any, any>>;
 

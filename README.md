@@ -6,11 +6,14 @@ Each spec you write is a tree of concepts, each describing something to build, w
 
 ## Install
 
+Codeform is two packages: the library you build specs with, and the CLI that scaffolds and checks them.
+
 ```bash
-npm install codeform
+npm install codeform          # the library — formers, Shape, Conforms
+npm install -D codeform-cli   # the CLI — codeform gen / check / emit
 ```
 
-Codeform is **TypeScript-native by design**: it ships TypeScript *source*, not compiled JavaScript. That's deliberate — the types the spec is built from flow straight into your project, with no separate `.d.ts` layer, and your toolchain compiles it under your own `tsconfig`. Use it with any TypeScript-aware setup — a bundler (esbuild, Vite, Bun), `tsx`, or Node's `--experimental-strip-types`; it won't run under plain `node` without one. The CLI (`codeform gen` / `check` / `emit`) additionally needs `typescript`, which it takes as an optional peer dependency.
+`codeform` ships compiled JavaScript with type declarations, so it drops into any project and runs under plain Node. `codeform-cli` is a dev tool: it has to load your spec *source* as TypeScript, so it carries its own loader — you don't need to configure one. Its `check` command shells out to `tsc`, so keep `typescript` installed; it's an optional peer.
 
 The walkthrough below is one `account` spec, start to finish — runnable in [`examples/account/`](examples/account).
 

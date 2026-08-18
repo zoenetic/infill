@@ -1,4 +1,4 @@
-import type { Concept, former, TypeOf } from "./concept";
+import type { Concept, former, TypeOf } from "./concept.js";
 
 type FillOf<C> = C extends Concept<any, infer F, any> ? F : {};
 

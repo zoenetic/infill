@@ -5,4 +5,7 @@ target/
 output.yaml
 notes/
 ts/README.md
+ts/LICENSE
+cli/README.md
+cli/LICENSE
 .env

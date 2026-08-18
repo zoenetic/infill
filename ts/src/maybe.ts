@@ -1,5 +1,5 @@
-import { type Concept, former, type TypeOf } from "./concept";
-import type { Gap } from "./gap";
+import { type Concept, former, type TypeOf } from "./concept.js";
+import type { Gap } from "./gap.js";
 
 /** Creates a `maybe` concept: `inner`, possibly absent, with no description. */
 export function maybe<Inner extends Concept<any, any>>(

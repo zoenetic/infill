@@ -1,4 +1,4 @@
-import { type Concept, former } from "./concept";
+import { type Concept, former } from "./concept.js";
 
 /** True when `C` is a `maybe` part, so its key projects to an optional property. */
 type IsMaybe<C> = [

@@ -1,5 +1,5 @@
-import { type Concept, former } from "./concept";
-import type { Gap } from "./gap";
+import { type Concept, former } from "./concept.js";
+import type { Gap } from "./gap.js";
 
 /** Creates a `ref` concept that points at another concept `to`, without restating its structure. */
 export function ref(to: Concept<any, any>): Concept<Gap>;
