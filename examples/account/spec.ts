@@ -1,4 +1,4 @@
-import { def, many, of, oneOf } from "infill";
+import { def, many, of, oneOf } from "codeform";
 
 export const plan = oneOf("their subscription tier", {
 	free: def("no cost, limited usage"),

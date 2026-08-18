@@ -13,7 +13,7 @@ function fixture() {
 	return { status, user, project } as Record<string, unknown>;
 }
 
-const opts = { lib: "infill", spec: "./spec" };
+const opts = { lib: "codeform", spec: "./spec" };
 
 test("conceptNames lists concept exports in order", () => {
 	assert.deepEqual(conceptNames(fixture()), ["status", "user", "project"]);
@@ -21,7 +21,7 @@ test("conceptNames lists concept exports in order", () => {
 
 test("codegen mirrors each root with a _conforms line", () => {
 	const out = codegen(fixture(), opts);
-	assert.match(out, /import \{ type Conforms, .* \} from "infill";/);
+	assert.match(out, /import \{ type Conforms, .* \} from "codeform";/);
 	assert.match(out, /export const user = def\("someone", \{/);
 	assert.match(out, /status: of\(spec\.status\)/);
 	assert.match(

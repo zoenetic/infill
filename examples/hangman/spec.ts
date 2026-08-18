@@ -1,4 +1,4 @@
-import { def, many, of, oneOf } from "infill";
+import { def, many, of, oneOf } from "codeform";
 
 export const status = oneOf("how the game stands", {
 	playing: def("the player still has guesses left and letters hidden"),

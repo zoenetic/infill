@@ -1,10 +1,10 @@
 {
-	"name": "infill-examples",
+	"name": "codeform-examples",
 	"version": "0.0.0",
 	"type": "module",
 	"private": true,
 	"dependencies": {
-		"infill": "workspace:*"
+		"codeform": "workspace:*"
 	},
 	"devDependencies": {
 		"@types/node": "^22"
