@@ -12,6 +12,8 @@ catalogs:
 
 importers:
 
+  .: {}
+
   examples:
     dependencies:
       codeform:
