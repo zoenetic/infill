@@ -25,8 +25,12 @@ export function codegen(
 		if (name !== "default" && isConcept(v)) named.set(v, name);
 	const emit = only ? new Set(only) : null;
 
-	const call = (fn: string, args: (string | undefined)[]) =>
-		`${fn}(${args.filter((a) => a !== undefined).join(", ")})`;
+	// The formers `expr` actually emits, so the import lists only what's used.
+	const used = new Set<string>();
+	const call = (fn: string, args: (string | undefined)[]) => {
+		used.add(fn);
+		return `${fn}(${args.filter((a) => a !== undefined).join(", ")})`;
+	};
 
 	const fillExpr = (
 		fill: Record<string, Concept<any, any>>,
@@ -105,8 +109,9 @@ export function codegen(
 	const decls = body.join("\n").trimEnd();
 
 	if (only) return decls;
+	const imports = ["type Conforms", "conforms", ...[...used].sort()].join(", ");
 	return (
-		`import { type Conforms, conforms, def, many, maybe, of, oneOf, pick, ref } from "${opts.lib}";\n` +
+		`import { ${imports} } from "${opts.lib}";\n` +
 		`import * as spec from "${opts.spec}";\n\n${decls}\n`
 	);
 }

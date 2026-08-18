@@ -1,4 +1,4 @@
-import { type Conforms, conforms, def, many, maybe, of, oneOf, pick, ref } from "codeform";
+import { type Conforms, conforms, def, many, of, oneOf } from "codeform";
 import * as spec from "./spec";
 
 export const hangman = def("a command-line hangman game the player runs and plays to completion: pick a word, then let them guess letters until they win or run out of tries", {

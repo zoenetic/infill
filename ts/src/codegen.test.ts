@@ -21,7 +21,11 @@ test("conceptNames lists concept exports in order", () => {
 
 test("codegen mirrors each root with a _conforms line", () => {
 	const out = codegen(fixture(), opts);
-	assert.match(out, /import \{ type Conforms, .* \} from "codeform";/);
+	// only the formers actually emitted are imported (no many/maybe/pick/given)
+	assert.match(
+		out,
+		/^import \{ type Conforms, conforms, def, of, oneOf, ref \} from "codeform";$/m,
+	);
 	assert.match(out, /export const user = def\("someone", \{/);
 	assert.match(out, /status: of\(spec\.status\)/);
 	assert.match(
