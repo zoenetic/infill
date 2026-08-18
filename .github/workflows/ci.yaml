@@ -4,51 +4,32 @@ on:
     branches: [main]
   pull_request:
 
-permissions: {}
+permissions:
+  contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  changes:
+  test:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    outputs:
-      ts: ${{ steps.filter.outputs.ts }}
-      spec: ${{ steps.filter.outputs.spec }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
 
-      - id: filter
-        env:
-          EVENT: ${{ github.event_name }}
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-        run: |
-          set -euo pipefail
-          if [ "$EVENT" != "pull_request" ]; then
-            # pushes to main run everything
-            printf 'ts=true\nspec=true\n' >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          changed="$(git diff --name-only "$BASE_SHA...HEAD")"
-          match() { echo "$changed" | grep -qE "$1"; }
-          ci=false;   match '^\.github/workflows/|^mise\.toml$' && ci=true
-          ts=$ci;     match '^ts/'   && ts=true
-          spec=$ci;   match '^spec/' && spec=true
-          printf 'ts=%s\nspec=%s\n' "$ts" "$spec" >> "$GITHUB_OUTPUT"
-
-  ts:
-    needs: changes
-    if: needs.changes.outputs.ts == 'true' || needs.changes.outputs.ci == 'true'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    defaults:
-      run:
+      - name: typecheck + unit tests
         working-directory: ts
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        run: |
+          pnpm exec tsc --noEmit
+          pnpm exec tsx --test src/*.test.ts
+
+      - name: self-spec typechecks
+        run: cd spec && ./node_modules/.bin/codeform check spec.ts
+
+      - name: examples conform
+        run: |
+          for d in account hangman; do
+            (cd "examples/$d" && ../node_modules/.bin/codeform check spec.ts)
+          done
