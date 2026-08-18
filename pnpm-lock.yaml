@@ -14,22 +14,6 @@ importers:
 
   .: {}
 
-  cli:
-    dependencies:
-      codeform:
-        specifier: workspace:*
-        version: link:../ts
-      tsx:
-        specifier: ^4.23.12
-        version: 4.23.12
-    devDependencies:
-      '@types/node':
-        specifier: ^26.2.0
-        version: 26.2.0
-      typescript:
-        specifier: 'catalog:'
-        version: 7.0.2
-
   examples:
     dependencies:
       codeform:
@@ -39,22 +23,18 @@ importers:
       '@types/node':
         specifier: ^22
         version: 22.20.1
-      codeform-cli:
-        specifier: workspace:*
-        version: link:../cli
 
   spec:
     dependencies:
       codeform:
         specifier: workspace:*
         version: link:../ts
-    devDependencies:
-      codeform-cli:
-        specifier: workspace:*
-        version: link:../cli
 
   ts:
     dependencies:
+      tsx:
+        specifier: ^4.23.12
+        version: 4.23.12
       yaml:
         specifier: ^2.9.0
         version: 2.9.0
@@ -62,9 +42,6 @@ importers:
       '@types/node':
         specifier: ^26.2.0
         version: 26.2.0
-      tsx:
-        specifier: ^4.23.12
-        version: 4.23.12
       typescript:
         specifier: 'catalog:'
         version: 7.0.2

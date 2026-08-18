@@ -4,7 +4,8 @@ import { createRequire } from "node:module";
 import { basename, dirname, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { parseArgs } from "node:util";
-import { codegen, conceptNames, emit } from "codeform";
+import { codegen, conceptNames } from "./codegen.js";
+import { emit } from "./emit.js";
 
 const require = createRequire(import.meta.url);
 

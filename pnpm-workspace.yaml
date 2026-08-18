@@ -1,6 +1,5 @@
 packages:
   - ts
-  - cli
   - spec
   - examples
 
