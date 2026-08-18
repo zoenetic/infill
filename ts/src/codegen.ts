@@ -98,7 +98,7 @@ export function codegen(
 		if ((c as Concept<any, any>)[former] === "given") continue;
 		body.push(`export const ${name} = ${expr(c as Concept<any, any>, "")};`);
 		body.push(
-			`export const _${name}: Conforms<typeof ${name}, typeof spec.${name}> = true;`,
+			`export const _${name}: Conforms<typeof ${name}, typeof spec.${name}, "${name}"> = conforms<typeof ${name}, typeof spec.${name}, "${name}">();`,
 		);
 		body.push("");
 	}
@@ -106,7 +106,7 @@ export function codegen(
 
 	if (only) return decls;
 	return (
-		`import { type Conforms, def, many, maybe, of, oneOf, pick, ref } from "${opts.lib}";\n` +
+		`import { type Conforms, conforms, def, many, maybe, of, oneOf, pick, ref } from "${opts.lib}";\n` +
 		`import * as spec from "${opts.spec}";\n\n${decls}\n`
 	);
 }

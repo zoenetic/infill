@@ -6,7 +6,7 @@
  * concept's gaps for a human or AI to fill in.
  */
 export { codegen } from "./codegen";
-export type { Conforms } from "./conforms";
+export { type Conforms, conforms } from "./conforms";
 export { def } from "./def";
 export { emit } from "./emit";
 export { given } from "./given";

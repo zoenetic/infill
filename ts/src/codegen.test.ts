@@ -26,7 +26,7 @@ test("codegen mirrors each root with a _conforms line", () => {
 	assert.match(out, /status: of\(spec\.status\)/);
 	assert.match(
 		out,
-		/export const _user: Conforms<typeof user, typeof spec\.user> = true;/,
+		/export const _user: Conforms<typeof user, typeof spec\.user, "user"> = conforms<typeof user, typeof spec\.user, "user">\(\);/,
 	);
 	assert.match(out, /export const status = oneOf\(\{/); // keyed choice
 	assert.match(out, /owner: ref\("the lead", spec\.user\)/);
