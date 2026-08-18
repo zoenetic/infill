@@ -12,116 +12,43 @@ npm install -D codeform
 
 Codeform is a development tool — you author and check specs with it and ship plain typed code — so it's a dev dependency. One package provides both the library (the formers, `Shape`, `Conforms`) and the `codeform` CLI (`gen` / `check` / `emit`).
 
-The walkthrough below is one `account` spec, start to finish — runnable in [`examples/account/`](examples/account).
+## What it does today
 
-## 1. The spec you write — `spec.ts`
+A spec is built from seven formers — `def`, `ref`, `of`, `many`, `maybe`, `oneOf`, `given` — where every unfilled node is a gap left on purpose:
 
 ```ts
-import { def, many, of, oneOf } from "codeform";
+import { def, of, oneOf } from "codeform";
 
-export const plan = oneOf("their subscription tier", {
-	free: def("no cost, limited usage"),
-	pro: def("paid, full features"),
-	enterprise: def("a custom contract"),
+export const status = oneOf("where a task stands", {
+	todo: def("not started"),
+	doing: def("in progress"),
+	done: def("finished"),
 });
 
-export const account = def("a signed-up team account", {
-	displayName: of(String),
-	plan: of(plan),
-	seats: of("how many people the account covers", Number),
-	admins: many("the admins who can manage billing, by email", of(String)),
-	features: many("the add-on features enabled for this account", of(String)),
+export const task = def("a unit of work", {
+	title: of(String),
+	status: of(status),
 });
 ```
 
-Every unfilled node is a **gap** — a decision left to the model on purpose. `plan` is a `oneOf`: a closed choice. Leaves you *type* (`of(String)`, `of(Number)`) get their values checked in code; a bare `def("...")` stays a free-form gap. Note there are no comments: anything worth saying is a **description**, so it travels with the concept into the model-facing document instead of being lost in the source.
+From there:
 
-## 2. `codeform gen` scaffolds a decisions file
+- **`codeform gen spec.ts`** scaffolds `decisions.gen.ts` — a conforming mirror of the spec with a type-level `Conforms<…>` assertion per concept. A model narrows the gaps.
+- **`codeform check spec.ts`** proves through `tsc` that the decisions still conform: the model can't invent a case, drop a part, or contradict a decided fact without it failing before anything ships.
+- **`codeform emit spec.ts`** renders the spec as the self-describing document the model reads — every concept with its path, its form, and the prose that says how to fill it.
+- **`Shape<typeof decisions.task>`** projects the decisions into the concrete type your implementation must satisfy, so your real code is checked too: assign `status: "blocked"` and it won't compile — `Type '"blocked"' is not assignable to type '"doing" | "done" | "todo"'`.
 
-```bash
-codeform gen spec.ts
-```
+What `tsc` holds today is **structure**: the shape of your data, the closed set of a `oneOf` (the model can't invent a case), exhaustiveness when you handle one, and exact values pinned by `pick` and `given`. Behavioural rules travel as prose in the emitted contract; the model implements them and you review.
 
-It writes `decisions.gen.ts` — a mirror of the spec that already conforms, as the starting point to narrow. The `_account` line is the conformance check: it asserts, at the type level, that the decision narrows the spec.
+Full runnable specs live in [`examples/account`](examples/account) and [`examples/hangman`](examples/hangman) — a whole game from a small spec.
 
-```ts
-export const account = def("a signed-up team account", {
-	displayName: of(String),
-	plan: of(spec.plan),
-	seats: of("how many people the account covers", Number),
-	admins: many("the admins who can manage billing, by email", of(String)),
-	features: many("the add-on features enabled for this account", of(String)),
-});
-export const _account: Conforms<typeof account, typeof spec.account> = true;
-```
+## Where it's going
 
-## 3. The model narrows the interpretation
+Codeform's throughline is closing the gap between *structure*, which types hold today, and *behaviour*, which they mostly can't. The roadmap is that, in order of reach:
 
-The one open interpretation here is the **choice** — the typed leaves are already settled. The model picks the plan, and `codeform check` verifies it conforms:
+- **Behavioural specification** — worked examples attached to an operation as facts, projected to literal types the implementation must reproduce: an example becomes a compile-time assertion instead of a comment.
+- **More formers** — the dial from open to decided has room at its ends, e.g. a `never()` to forbid a case or assert an absence, alongside today's `def … given`.
+- **Assertion helpers** — a small library of functions you call in your own code to assert properties against the spec and decisions (exhaustiveness, a value satisfying a spec path), surfacing as `tsc` errors the way `conforms()` already does.
+- **AI conformance** *(further out)* — a check that goes past types: cheap, non-deterministic model calls that verify generated code actually honours the prose contract — the behaviour types can't reach — with codeform skills and, eventually, IDE surfacing.
 
-```ts
-	plan: pick(spec.plan, "pro"),
-```
-
-```bash
-codeform check spec.ts
-# ✅ decisions conform
-```
-
-Pick a case that doesn't exist — `pick(spec.plan, "vip")` — and it fails before it ships:
-
-```
-error TS2345: Argument of type '"vip"' is not assignable to parameter of type
-'CasesOf<Concept<".", {}, "enterprise" | "free" | "pro">>'.
-```
-
-## 4. Build the code
-
-Now leave spec space. `Shape` projects the decisions into the concrete type your implementation must satisfy:
-
-```ts
-Shape<typeof decisions.account>
-// {
-//   displayName: string;
-//   plan: "pro";
-//   seats: number;
-//   admins: string[];
-//   features: string[];
-// }
-```
-
-The two compact `many(...)` lines in the spec become the actual lists in your code — and the model writes ordinary code of that type:
-
-```ts
-import type { Shape } from "codeform";
-import * as decisions from "./decisions.gen";
-
-export const acme: Shape<typeof decisions.account> = {
-	displayName: "Acme Corp",
-	plan: "pro",
-	seats: 24,
-	admins: [
-		"founders@acme.dev",
-		"ops@acme.dev",
-		"security@acme.dev",
-		"billing@acme.dev",
-	],
-	features: [
-		"sso",
-		"audit-log",
-		"custom-domains",
-		"priority-support",
-		"data-residency",
-	],
-};
-```
-
-`codeform check` passes — and every value is enforced, down to each element. A wrong plan, a non-number seat count, or a non-string admin won't compile:
-
-```
-error TS2322: Type '"startup"' is not assignable to type '"pro"'.
-error TS2322: Type 'string' is not assignable to type 'number'.
-error TS2322: Type 'number' is not assignable to type 'string'.
-```
-
-You wrote a 13-line spec and got 20 lines of typed, checked code — plus a verified decisions file. Structure and closed choices are always enforced; leaf *values* are enforced wherever you typed them. You police as much of the implementation as you chose to type — no more, no less.
+The real proof, and the eventual hero example, is codeform specified in codeform — built *from* its spec rather than having one inferred after the fact. Not yet; when it is, this README will be about that.
