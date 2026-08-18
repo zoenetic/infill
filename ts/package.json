@@ -2,6 +2,14 @@
   "name": "codeform",
   "version": "0.1.2",
   "description": "Spec driven development for people who still want to write code.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zoenetic/codeform.git",
+    "directory": "ts"
+  },
+  "homepage": "https://github.com/zoenetic/codeform#readme",
+  "bugs": "https://github.com/zoenetic/codeform/issues",
   "type": "module",
   "exports": {
     ".": "./src/index.ts"
@@ -12,16 +20,24 @@
   },
   "files": ["src", "bin"],
   "scripts": {
-    "prepack": "cp ../README.md README.md",
-    "postpack": "rm -f README.md",
+    "prepack": "cp ../README.md README.md && cp ../LICENSE LICENSE",
+    "postpack": "rm -f README.md LICENSE",
     "test": "tsc --noEmit && tsx --test src/*.test.ts"
   },
   "dependencies": {
     "tsx": "^4.23.12",
-    "typescript": "catalog:",
     "yaml": "^2.9.0"
   },
+  "peerDependencies": {
+    "typescript": ">=5"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
+  },
   "devDependencies": {
-    "@types/node": "^26.2.0"
+    "@types/node": "^26.2.0",
+    "typescript": "catalog:"
   }
 }

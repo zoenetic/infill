@@ -4,6 +4,14 @@ Codeform is a spec-driven development framework for people who still want to wri
 
 Each spec you write is a tree of concepts, each describing something to build, with deliberate gaps left for your preferred AI model to fill. Codeform renders the spec into a model-facing document, scaffolds a *decisions* file and type-checks the model's interpretation against your spec — then projects the spec into the concrete type your real code must satisfy. Both the model's interpretation and its code become something `tsc` verifies, not something you take on faith.
 
+## Install
+
+```bash
+npm install codeform
+```
+
+Codeform is **TypeScript-native by design**: it ships TypeScript *source*, not compiled JavaScript. That's deliberate — the types the spec is built from flow straight into your project, with no separate `.d.ts` layer, and your toolchain compiles it under your own `tsconfig`. Use it with any TypeScript-aware setup — a bundler (esbuild, Vite, Bun), `tsx`, or Node's `--experimental-strip-types`; it won't run under plain `node` without one. The CLI (`codeform gen` / `check` / `emit`) additionally needs `typescript`, which it takes as an optional peer dependency.
+
 The walkthrough below is one `account` spec, start to finish — runnable in [`examples/account/`](examples/account).
 
 ## 1. The spec you write — `spec.ts`

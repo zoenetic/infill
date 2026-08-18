@@ -1,7 +1,7 @@
 // Type-level tests for `Shape`: checked by `tsc --noEmit`. `@ts-expect-error`
 // asserts that a value which violates the spec is correctly rejected.
 
-import { def, of, oneOf, pick, type Shape } from "./index";
+import { def, maybe, of, oneOf, pick, type Shape } from "./index";
 
 const plan = oneOf({
 	free: def("no cost"),
@@ -77,4 +77,20 @@ export const badCfg: Shape<typeof config> = {
 	port: 8080,
 	tls: true,
 	legacy: "v1",
+};
+
+// A `maybe` part projects to an optional property: the key may be omitted...
+const contact = def("a way to reach someone", {
+	email: of(String),
+	phone: maybe(of(String)),
+});
+export const onlyEmail: Shape<typeof contact> = { email: "a@b.dev" };
+export const withPhone: Shape<typeof contact> = {
+	email: "a@b.dev",
+	phone: "+1",
+};
+export const badPhone: Shape<typeof contact> = {
+	email: "a@b.dev",
+	// @ts-expect-error phone, when present, is a string
+	phone: 42,
 };

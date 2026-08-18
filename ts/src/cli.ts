@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { readFileSync, writeFileSync } from "node:fs";
+import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { basename, dirname, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -11,7 +11,32 @@ const require = createRequire(import.meta.url);
 
 function check(specPath: string): number {
 	const dir = dirname(resolve(specPath));
-	const tscBin = resolve(dirname(require.resolve("typescript")), "../bin/tsc");
+	const specFile = basename(resolve(specPath));
+	// `check` proves conformance through the typechecker — but tsc on a folder
+	// holding only a spec (no decisions) passes vacuously. Require at least one
+	// sibling file carrying a `Conforms<…>` assertion, or there is nothing to
+	// verify and a green result would be a false positive.
+	const hasDecisions = readdirSync(dir).some(
+		(f) =>
+			f.endsWith(".ts") &&
+			f !== specFile &&
+			/\bConforms\s*</.test(readFileSync(resolve(dir, f), "utf8")),
+	);
+	if (!hasDecisions) {
+		console.error(
+			`✗ no decisions to check in ${dir} — run \`codeform gen ${specPath}\` first`,
+		);
+		return 1;
+	}
+	let tscBin: string;
+	try {
+		tscBin = resolve(dirname(require.resolve("typescript")), "../bin/tsc");
+	} catch {
+		console.error(
+			"✗ `codeform check` needs typescript — install it (npm i -D typescript)",
+		);
+		return 1;
+	}
 	const { status } = spawnSync(
 		process.execPath,
 		[tscBin, "--noEmit", "-p", dir],

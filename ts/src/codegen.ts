@@ -25,8 +25,12 @@ export function codegen(
 		if (name !== "default" && isConcept(v)) named.set(v, name);
 	const emit = only ? new Set(only) : null;
 
-	const call = (fn: string, args: (string | undefined)[]) =>
-		`${fn}(${args.filter((a) => a !== undefined).join(", ")})`;
+	// The formers `expr` actually emits, so the import lists only what's used.
+	const used = new Set<string>();
+	const call = (fn: string, args: (string | undefined)[]) => {
+		used.add(fn);
+		return `${fn}(${args.filter((a) => a !== undefined).join(", ")})`;
+	};
 
 	const fillExpr = (
 		fill: Record<string, Concept<any, any>>,
@@ -78,6 +82,14 @@ export function codegen(
 				return call("maybe", [d, expr(c.inner!, ind)]);
 			case "oneOf": {
 				const cs = c.cases;
+				// A `pick` is a oneOf carrying `to` (its origin choice) and a
+				// single case: round-trip it as pick(origin, key). The generic
+				// single-case oneOf below would inline a copy of the case and
+				// lose the linkage to the choice it narrows.
+				if (c.to && cs && !Array.isArray(cs)) {
+					const [key] = Object.keys(cs);
+					return call("pick", [ref(c.to), str(key)]);
+				}
 				if (Array.isArray(cs))
 					return call("oneOf", [d, ...cs.map((k) => expr(k, ind))]);
 				if (cs)
@@ -98,15 +110,16 @@ export function codegen(
 		if ((c as Concept<any, any>)[former] === "given") continue;
 		body.push(`export const ${name} = ${expr(c as Concept<any, any>, "")};`);
 		body.push(
-			`export const _${name}: Conforms<typeof ${name}, typeof spec.${name}> = true;`,
+			`export const _${name}: Conforms<typeof ${name}, typeof spec.${name}, "${name}"> = conforms<typeof ${name}, typeof spec.${name}, "${name}">();`,
 		);
 		body.push("");
 	}
 	const decls = body.join("\n").trimEnd();
 
 	if (only) return decls;
+	const imports = ["type Conforms", "conforms", ...[...used].sort()].join(", ");
 	return (
-		`import { type Conforms, def, many, maybe, of, oneOf, pick, ref } from "${opts.lib}";\n` +
+		`import { ${imports} } from "${opts.lib}";\n` +
 		`import * as spec from "${opts.spec}";\n\n${decls}\n`
 	);
 }

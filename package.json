@@ -1,6 +1,7 @@
 {
 	"name": "codeform-workspace",
 	"private": true,
+	"license": "MIT",
 	"type": "module",
 	"packageManager": "pnpm@11.21.0"
 }
