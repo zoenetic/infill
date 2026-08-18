@@ -49,6 +49,7 @@ Codeform's throughline is closing the gap between *structure*, which types hold 
 - **Behavioural specification** — worked examples attached to an operation as facts, projected to literal types the implementation must reproduce: an example becomes a compile-time assertion instead of a comment.
 - **More formers** — the dial from open to decided has room at its ends, e.g. a `never()` to forbid a case or assert an absence, alongside today's `def … given`.
 - **Assertion helpers** — a small library of functions you call in your own code to assert properties against the spec and decisions (exhaustiveness, a value satisfying a spec path), surfacing as `tsc` errors the way `conforms()` already does.
+- **Model tooling** — skills and commands that let a model interact with the spec and decisions files directly: read a concept by path, scaffold and narrow decisions, run `check` and act on the result — instead of a human relaying `emit` output by hand.
 - **AI conformance** *(further out)* — a check that goes past types: cheap, non-deterministic model calls that verify generated code actually honours the prose contract — the behaviour types can't reach — with codeform skills and, eventually, IDE surfacing.
 
 The real proof, and the eventual hero example, is codeform specified in codeform — built *from* its spec rather than having one inferred after the fact. Not yet; when it is, this README will be about that.
