@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { codegen, conceptNames } from "./codegen.js";
 import { def } from "./def.js";
+import { given } from "./given.js";
 import { of } from "./of.js";
 import { oneOf } from "./oneOf.js";
 import { pick } from "./pick.js";
@@ -53,4 +54,47 @@ test("only-mode emits just the named roots, no header", () => {
 	assert.doesNotMatch(out, /^import /m);
 	assert.match(out, /export const user = /);
 	assert.doesNotMatch(out, /export const project = /);
+});
+
+test("a spec concept named `spec` doesn't collide with the namespace import", () => {
+	// codeform's own spec exports a concept called `spec`, which used to generate
+	// a file whose `import * as spec` clashed with `export const spec`, and whose
+	// `_spec` assertion clashed with the fallback alias.
+	const concept = def("a node");
+	const spec = def("what the author writes", { concepts: of(concept) });
+	const out = codegen({ concept, spec } as Record<string, unknown>, opts);
+	assert.match(out, /^import \* as (__spec|_spec) from "\.\/spec";$/m);
+	assert.doesNotMatch(out, /^import \* as spec from/m);
+	assert.match(out, /typeof __spec\.spec/);
+});
+
+test("a from-less `of` leaf round-trips instead of emitting a broken reference", () => {
+	// `of("prose")` and `of<T>("prose")` are indistinguishable at runtime: neither
+	// carries a target. Emitting `of(desc, spec./*inline*/)` was not valid source.
+	const leaf = def("a config", { note: of("anything you like") });
+	const out = codegen({ leaf } as Record<string, unknown>, opts);
+	assert.match(out, /note: of\("anything you like"\)/);
+	assert.doesNotMatch(out, /inline/);
+});
+
+test("an unbound target is reproduced inline, not addressed through the spec", () => {
+	const holder = def("a holder", { at: ref(def("nowhere in particular")) });
+	const out = codegen({ holder } as Record<string, unknown>, opts);
+	assert.match(out, /at: ref\(def\("nowhere in particular"\)\)/);
+	assert.doesNotMatch(out, /inline/);
+});
+
+test("facts are carried into the decisions file, so the projection keeps them", () => {
+	// A decision needn't assert a fact, but dropping it from the generated mirror
+	// dropped it from `Shape<typeof decisions.…>` too — and then the
+	// implementation was never held to it.
+	const node = def("a node", { form: given("concept"), name: of(String) });
+	const out = codegen({ node } as Record<string, unknown>, opts);
+	assert.match(out, /form: given\("concept"\)/);
+});
+
+test("an empty fill emits as `{}` rather than a blank block", () => {
+	const bare = def("a concept with an empty fill", {});
+	const out = codegen({ bare } as Record<string, unknown>, opts);
+	assert.match(out, /def\("a concept with an empty fill", \{\}\)/);
 });

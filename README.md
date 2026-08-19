@@ -38,7 +38,11 @@ From there:
 - **`codeform emit spec.ts`** renders the spec as the self-describing document the model reads — every concept with its path, its form, and the prose that says how to fill it.
 - **`Shape<typeof decisions.task>`** projects the decisions into the concrete type your implementation must satisfy, so your real code is checked too: assign `status: "blocked"` and it won't compile — `Type '"blocked"' is not assignable to type '"doing" | "done" | "todo"'`.
 
-What `tsc` holds today is **structure**: the shape of your data, the closed set of a `oneOf` (the model can't invent a case), exhaustiveness when you handle one, and exact values pinned by `pick` and `given`. Behavioural rules travel as prose in the emitted contract; the model implements them and you review.
+Both halves are **total** — every former has a rule, at every depth. A `ref` projects through the concept it points at; a `many` to an array of its element's projection; an `of` lays its own parts over its target's rather than replacing them; a `maybe` to an optional key; a `given` to the literal it asserts. Conformance walks the same way, so a decision that swaps out a collection's element, drops the optionality off a `maybe`, guts a choice's case from the inside, or contradicts a fact fails at the exact path it happened — addressed the way `emit` addresses it, `route.stops[].note` and `shape#circle.radius` included.
+
+What `tsc` holds is **structure**: the shape of your data at any depth, the closed set of a `oneOf` (the model can't invent a case), exhaustiveness when you handle one, and exact values pinned by `pick` and `given`. Behavioural rules travel as prose in the emitted contract; the model implements them and you review.
+
+One leaf is deliberately outside all of this. `of<string>()` types a leaf in the spec's source alone — nothing survives to runtime, so `emit`, `gen` and `check` can't see it. Use the token form, `of(String)`, for any leaf the decisions file should be held to.
 
 Full runnable specs live in [`examples/account`](examples/account) and [`examples/hangman`](examples/hangman) — a whole game from a small spec.
 
@@ -52,4 +56,4 @@ Codeform's throughline is closing the gap between *structure*, which types hold 
 - **Model tooling** — skills and commands that let a model interact with the spec and decisions files directly: read a concept by path, scaffold and narrow decisions, run `check` and act on the result — instead of a human relaying `emit` output by hand.
 - **AI conformance** *(further out)* — a check that goes past types: cheap, non-deterministic model calls that verify generated code actually honours the prose contract — the behaviour types can't reach — with codeform skills and, eventually, IDE surfacing.
 
-The real proof, and the eventual hero example, is codeform specified in codeform — built *from* its spec rather than having one inferred after the fact. Not yet; when it is, this README will be about that.
+The real proof, and the eventual hero example, is codeform specified in codeform — built *from* its spec rather than having one inferred after the fact. [`spec/`](spec) holds that spec, and it now round-trips: `gen` scaffolds a decisions file that compiles and `check` proves it conforms, both in CI. That is the spec describing codeform accurately, not codeform built from it. When the second is true, this README will be about that.

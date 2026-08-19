@@ -3,12 +3,14 @@ import { def, given, many, maybe, of, oneOf, ref } from "codeform";
 export const concept = def(
 	"codeform's one node type; a spec is a tree of these",
 	{
-		name: of<string>(
+		name: of(
 			"the key a concept is bound under — its module export name, or its fill key",
+			String,
 		),
 		description: maybe(
-			of<string>(
+			of(
 				"states the need here; absent when the name says enough on its own",
+				String,
 			),
 		),
 	},
@@ -62,7 +64,7 @@ export const spec = def(
 );
 
 export const conformance = def(
-	"the check that a decision only narrows the spec: a typed leaf keeps a type the spec allows, a choice resolves to one of the offered cases, and every part is covered. Equivalently — and this is how the typechecker resolves it — the decision's projection is assignable to the spec's projection, so a decision that contradicts the spec fails to compile",
+	"the check that a decision only narrows the spec: a typed leaf keeps a type the spec allows, a choice resolves to one of the offered cases, a collection keeps its element and an optional its value, and every part is covered. The walk is total — it recurses through a collection's element, an optional's value and a choice's cases, not only through named parts — and reports the address of whatever failed. Equivalently, and this is how the typechecker resolves it, the decision's projection is assignable to the spec's projection, so a decision that contradicts the spec fails to compile",
 );
 
 export const projection = def(

@@ -1,0 +1,94 @@
+import { type Conforms, conforms, def, given, many, maybe, of, oneOf, ref } from "codeform";
+import * as __spec from "./spec";
+
+export const codeform = def("a typescript framework and cli for spec-driven development that makes typescript software", {
+	principles: def({
+		gapByDefault: given("a node is open by default and carving only narrows it; the sole way to close one is to assert it with given, making it a fact"),
+		noReservedKeys: given("the authoring layer reserves no fill keys; structure comes from the formers, not magic keys, and the rendered artifact has its own separate namespace"),
+		namesAreContent: given("a concept's name is part of its content, not just an identifier"),
+		typeChecked: given("both halves are held by the typechecker: decisions must conform to the spec, and code must satisfy the spec's projection"),
+	}),
+	primitives: ref(__spec.primitives),
+	pipeline: ref(__spec.pipeline),
+});
+export const _codeform: Conforms<typeof codeform, typeof __spec.codeform, "codeform"> = conforms<typeof codeform, typeof __spec.codeform, "codeform">();
+
+export const concept = def("codeform's one node type; a spec is a tree of these", {
+	name: of("the key a concept is bound under — its module export name, or its fill key", String),
+	description: maybe(of("states the need here; absent when the name says enough on its own", String)),
+});
+export const _concept: Conforms<typeof concept, typeof __spec.concept, "concept"> = conforms<typeof concept, typeof __spec.concept, "concept">();
+
+export const conformance = def("the check that a decision only narrows the spec: a typed leaf keeps a type the spec allows, a choice resolves to one of the offered cases, a collection keeps its element and an optional its value, and every part is covered. The walk is total — it recurses through a collection's element, an optional's value and a choice's cases, not only through named parts — and reports the address of whatever failed. Equivalently, and this is how the typechecker resolves it, the decision's projection is assignable to the spec's projection, so a decision that contradicts the spec fails to compile");
+export const _conformance: Conforms<typeof conformance, typeof __spec.conformance, "conformance"> = conforms<typeof conformance, typeof __spec.conformance, "conformance">();
+
+export const former = oneOf("each former produces a kind of node from its own operands", {
+	def: def("the broadest former; a concept, optionally carved into named parts", {
+		form: given("concept"),
+	}),
+	ref: def("points at another concept without inheriting its gaps", {
+		target: ref(__spec.concept),
+		form: given("reference"),
+	}),
+	of: def("either takes another concept's shape and gaps and narrows them — adding new parts or carving existing ones, never dropping a gap, so a refinement only ever conforms to its target — or types a leaf value from a runtime token (String, Number, or Boolean) so the leaf's type survives from the spec into the model's code", {
+		target: ref(__spec.concept),
+		form: given("shape"),
+	}),
+	many: def("some number of an inner concept", {
+		inner: of(__spec.concept),
+		form: given("collection"),
+	}),
+	maybe: def("zero or one of an inner concept", {
+		inner: of(__spec.concept),
+		form: given("optional"),
+	}),
+	oneOf: def("exactly one of a set of named cases; closed as written", {
+		cases: many(of(__spec.concept)),
+		form: given("choice"),
+	}),
+	given: def("asserts a decided value; the one former that closes a node into a fact", {
+		value: def("the content being asserted, taken as fixed"),
+		form: given("fact"),
+	}),
+});
+export const _former: Conforms<typeof former, typeof __spec.former, "former"> = conforms<typeof former, typeof __spec.former, "former">();
+
+export const pipeline = def("how a spec becomes verified software, across two phases", {
+	spec: ref(__spec.spec),
+	artifact: def("the model-facing rendering the model reads; its keys are its own namespace, separate from these concept names — version surfaces as the top-level `codeform:` key and legend as `howToRead`", {
+		version: given(1),
+		root: ref("the spec's entry-point concept; present when the spec sets a default export", __spec.concept),
+		legend: given("model-facing instructions on how to read gaps, names, and forms"),
+		concepts: given("every named concept in the spec, keyed by name; each a node — its path, form, a type for a typed leaf, description or name-only marker, generated reading and gap lines, and the parts, element, or cases its form carries"),
+	}),
+	refine: def("phase one, still in spec space: the model narrows the spec's gaps into decisions, and conformance verifies each narrowing", {
+		decisions: of("the model's narrowings of the spec's gaps", __spec.spec),
+		check: ref(__spec.conformance),
+	}),
+	build: def("phase two, in code: the spec projects into a concrete type and the model writes real implementation code the typechecker holds to it", {
+		shape: ref(__spec.projection),
+		code: def("the implementation, ordinary code written to the projected type"),
+	}),
+	cli: def("the codeform command line", {
+		commands: def({
+			gen: def("scaffold or additively update the decisions file from a spec"),
+			check: def("run the conformance check and report any issues"),
+			emit: def("render a spec's model-facing artifact"),
+		}),
+	}),
+});
+export const _pipeline: Conforms<typeof pipeline, typeof __spec.pipeline, "pipeline"> = conforms<typeof pipeline, typeof __spec.pipeline, "pipeline">();
+
+export const primitives = def("the primitives codeform is built from", {
+	concept: ref(__spec.concept),
+	former: ref(__spec.former),
+});
+export const _primitives: Conforms<typeof primitives, typeof __spec.primitives, "primitives"> = conforms<typeof primitives, typeof __spec.primitives, "primitives">();
+
+export const projection = def("the concrete type a spec projects into for real code, by form: named parts become an object of projected parts; a typed leaf becomes its type; a choice becomes its case-key union; a collection becomes an array of its element's projection; an optional becomes its value's projection or absent; a reference or shape projects through its target; a fact becomes its asserted value; an untyped gap stays open as `unknown` — so the typechecker enforces exactly as much of the code as the spec chose to type");
+export const _projection: Conforms<typeof projection, typeof __spec.projection, "projection"> = conforms<typeof projection, typeof __spec.projection, "projection">();
+
+export const spec = def("what the human author writes; bound concepts that may be narrowed", {
+	concepts: many(of(__spec.concept)),
+});
+export const _spec: Conforms<typeof spec, typeof __spec.spec, "spec"> = conforms<typeof spec, typeof __spec.spec, "spec">();
