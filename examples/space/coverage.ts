@@ -20,7 +20,7 @@ function stateOf(asked: Concept<any, any>, given?: Concept<any, any>): State {
 	return restated && !carved ? "untouched" : "answered";
 }
 
-const asked = space.fill ?? {};
+const asked = (space.fill ?? {}) as Record<string, Concept<any, any>>;
 const answers = (orders.fill ?? {}) as Record<string, Concept<any, any>>;
 
 const mark = { answered: "✔", declined: "—", untouched: "·" } as const;
