@@ -3,6 +3,7 @@ import { test } from "node:test";
 import { codegen, conceptNames } from "./codegen.js";
 import { def } from "./def.js";
 import { given } from "./given.js";
+import { many } from "./many.js";
 import { of } from "./of.js";
 import { oneOf } from "./oneOf.js";
 import { pick } from "./pick.js";
@@ -98,4 +99,20 @@ test("an empty fill emits as `{}` rather than a blank block", () => {
 	const bare = def("a concept with an empty fill", {});
 	const out = codegen({ bare } as Record<string, unknown>, opts);
 	assert.match(out, /def\("a concept with an empty fill", \{\}\)/);
+});
+
+test("a keyed `many` round-trips with its key concept", () => {
+	const node = def("a node", { title: of(String) });
+	const holder = def("a spec", {
+		concepts: many("by name", of(String), of(node)),
+	});
+	const out = codegen({ node, holder } as Record<string, unknown>, opts);
+	assert.match(out, /concepts: many\("by name", of\(String\), of\(spec\.node\)\)/);
+});
+
+test("an unkeyed `many` still emits with one operand", () => {
+	const node = def("a node", { title: of(String) });
+	const holder = def("a list", { items: many("in order", of(node)) });
+	const out = codegen({ node, holder } as Record<string, unknown>, opts);
+	assert.match(out, /items: many\("in order", of\(spec\.node\)\)/);
 });

@@ -89,7 +89,11 @@ export function codegen(
 					c.fill ? fillExpr(c.fill, ind) : undefined,
 				]);
 			case "many":
-				return call("many", [d, expr(c.inner!, ind)]);
+				return call("many", [
+					d,
+					c.key ? expr(c.key, ind) : undefined,
+					expr(c.inner!, ind),
+				]);
 			case "maybe":
 				return call("maybe", [d, expr(c.inner!, ind)]);
 			case "oneOf": {

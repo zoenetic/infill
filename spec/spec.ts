@@ -52,7 +52,10 @@ export const former = oneOf(
 		}),
 		oneOf: def(
 			"exactly one of a set of cases, keyed by name and closed as written: a decision may narrow to fewer cases, which is what pick does, but never add one",
-			{ cases: many(of(concept)), form: given("choice") },
+			{
+				cases: many(of("the case's name", String), of(concept)),
+				form: given("choice"),
+			},
 		),
 		given: def(
 			"asserts a decided value; the one former that closes a node into a fact",
@@ -71,7 +74,12 @@ export const primitives = def("the primitives codeform is built from", {
 
 export const spec = def(
 	"what the human author writes; bound concepts that may be narrowed",
-	{ concepts: many(of(concept)) },
+	{
+		concepts: many(
+			of("the name the concept is bound under, which is part of it", String),
+			of(concept),
+		),
+	},
 );
 
 export const conformance = def(

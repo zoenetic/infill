@@ -26,7 +26,8 @@ const howToRead = {
 			"Points to another named concept. Read that concept; it is not restated here.",
 		shape:
 			"Takes on another concept's structure and gaps. Parts here add new positions or narrow the target's — never dropping one, so a shape only ever refines.",
-		collection: "Some number of the inner concept.",
+		collection:
+			"Some number of the inner concept. A `keyedBy` names the key each element is addressed by; without one the container is a sequence.",
 		optional: "The inner concept, possibly absent.",
 		choice:
 			"Exactly one of the listed cases. The list is complete; do not invent new cases.",
@@ -136,7 +137,9 @@ export function emit(mod: Record<string, unknown>): {
 			case "ref":
 				return `The role here, beyond what ${nameOf(c.to) ?? "?"} already specifies.`;
 			case "many":
-				return "How many, and the container, are open; each element is below.";
+				return c.key
+					? "How many is open; the container is decided as keyed, and the key and each element are below."
+					: "How many is open; the container is a sequence. Each element is below.";
 			case "maybe":
 				return "Whether it is present is open; the value is below.";
 			case "oneOf":
@@ -179,7 +182,9 @@ export function emit(mod: Record<string, unknown>): {
 			}
 			case "many": {
 				const of = c.inner?.description ?? "an unspecified element";
-				return `${p} — some number of ${of} (see \`${path}[]\`). Count and container are unspecified.`;
+				return c.key
+					? `${p} — some number of ${of} (see \`${path}[]\`), each addressed by a key (see \`${path}{}\`). The key is part of the content, not just an index. How many is unspecified.`
+					: `${p} — some number of ${of} (see \`${path}[]\`). How many is unspecified.`;
 			}
 			case "maybe": {
 				const of = c.inner?.description ?? `the value at \`${path}?\``;
@@ -243,6 +248,7 @@ export function emit(mod: Record<string, unknown>): {
 				break;
 			}
 			case "many":
+				if (c.key) d.keyedBy = node(c.key, `${path}{}`);
 				d.each = node(c.inner!, `${path}[]`);
 				break;
 			case "maybe":

@@ -32,10 +32,20 @@ type Merge<A, B> = [A] extends [object]
 	: B;
 
 /** A choice projects to its case-key union when keyed, or to the union of its cases' own projections when positional. */
+/**
+ * A case contributes its *name* when the name is all there is to it, and its
+ * payload keyed by that name when the case was carved further. No reserved tag
+ * key: the case name is the discriminant, which is what `namesAreContent` says
+ * it already was.
+ */
+type CaseShape<K, Case> = [unknown] extends [Shape<Case>]
+	? K & string
+	: { [P in K & string]: Shape<Case> };
+
 type ChoiceShape<C> = C extends { readonly cases: infer Cs }
 	? Cs extends readonly unknown[]
 		? Shape<Cs[number]>
-		: keyof Cs & string
+		: { [K in keyof Cs]: CaseShape<K, Cs[K]> }[keyof Cs]
 	: unknown;
 
 /**
@@ -66,7 +76,8 @@ type OfShape<C> = C extends { readonly from: infer From }
  * - a `ref` projects through the concept it points at;
  * - an `of` projects through its target, with its own parts laid over that
  *   target's, or to its token's type (`of(String)` -> `string`);
- * - a `many` becomes an array of its element's projection;
+ * - a `many` becomes an array of its element's projection, or — when it names a
+ *   key concept — a record from that key's projection to its element's;
  * - a `maybe` becomes its value's projection or `undefined`, and as a named part
  *   an optional key (`key?:`) rather than a required `key: T | undefined`;
  * - a `oneOf` becomes its case-key union, which a `pick` narrows to one literal;
@@ -85,9 +96,11 @@ export type Shape<C> = C extends { readonly [former]: infer K }
 				? Shape<To>
 				: unknown
 			: K extends "many"
-				? C extends { readonly inner: infer I }
-					? Shape<I>[]
-					: unknown[]
+				? C extends { readonly key: infer Ky; readonly inner: infer I }
+					? Record<Shape<Ky> & PropertyKey, Shape<I>>
+					: C extends { readonly inner: infer I }
+						? Shape<I>[]
+						: unknown[]
 				: K extends "maybe"
 					? C extends { readonly inner: infer I }
 						? Shape<I> | undefined

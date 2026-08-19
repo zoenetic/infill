@@ -45,6 +45,8 @@ export interface Concept<
 	readonly token?: unknown;
 	/** Present on `many`/`maybe` concepts: the element or wrapped concept. */
 	readonly inner?: Concept<any, any>;
+	/** Present on a keyed `many`: the concept its keys take, deciding the container the bare form leaves open. */
+	readonly key?: Concept<any, any>;
 	/** Present on `oneOf` concepts: the exhaustive list of alternatives, as an array of cases or a keyed record for {@link pick}. */
 	readonly cases?:
 		| readonly Concept<any, any>[]

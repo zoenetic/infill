@@ -42,15 +42,19 @@ type Mark<S> = [
  * parts is a leaf, and its whole meaning is its projection, so the decision's
  * must narrow the spec's.
  *
- * A node *with* named parts is left to the per-part recursion below, which
- * reports a precise path instead of blaming the whole subtree — and which lets a
- * decision omit a `given` fact, as {@link RequiredKeys} allows.
+ * A node whose meaning is its children rather than its own projection — one with
+ * named parts, or a choice with cases — is left to the recursion below, which
+ * reports a precise path instead of blaming the whole subtree. That is also what
+ * lets a decision omit a `given` fact, as {@link RequiredKeys} allows, and what
+ * keeps a gutted choice case blamed at the case rather than at the choice.
  */
 type Holds<D, S> = [Target<D>] extends [Target<S>]
 	? [keyof FillOf<S>] extends [never]
-		? [Shape<D>] extends [Shape<S>]
+		? S extends { readonly cases: unknown }
 			? true
-			: false
+			: [Shape<D>] extends [Shape<S>]
+				? true
+				: false
 		: true
 	: false;
 
@@ -89,13 +93,18 @@ type PartFails<FD, FS, P extends string> = {
 }[keyof FS];
 
 /** A collection's element or an optional's value: the decision must keep one, and it must conform. */
-type InnerFails<D, S, P extends string> = S extends {
-	readonly inner: infer SI;
-}
-	? D extends { readonly inner: infer DI }
-		? Fails<DI, SI, `${P}${Mark<S>}`>
-		: P
-	: never;
+type InnerFails<D, S, P extends string> =
+	| (S extends { readonly inner: infer SI }
+			? D extends { readonly inner: infer DI }
+				? Fails<DI, SI, `${P}${Mark<S>}`>
+				: P
+			: never)
+	// A keyed collection's keys are content too: a decision may not re-key it.
+	| (S extends { readonly key: infer SK }
+			? D extends { readonly key: infer DK }
+				? Fails<DK, SK, `${P}{}`>
+				: P
+			: never);
 
 /**
  * A choice's cases. The decision may drop cases — that is narrowing, and what
@@ -110,7 +119,12 @@ type CaseFails<D, S, P extends string> = S extends { readonly cases: infer SC }
 			? DC extends readonly unknown[]
 				? P
 				:
-						| `${P}#${Exclude<keyof DC, keyof SC> & string}`
+						// An invented case is blamed at `${P}#${key}` by `ExtraCases`, so
+						// this side reports the choice itself. The two must never coincide:
+						// `conforms()` types as the blame and is asserted against the
+						// expectation, and identical strings on both sides of that
+						// assignment are no error at all.
+						| ([Exclude<keyof DC, keyof SC>] extends [never] ? never : P)
 						| {
 								[K in keyof SC & keyof DC & string]: Fails<
 									DC[K],

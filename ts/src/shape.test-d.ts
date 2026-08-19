@@ -175,3 +175,55 @@ export const badSurvey: Shape<typeof survey> = {
 	// @ts-expect-error a reading, when present, is a 3-d point
 	readings: [{ x: 1, y: 2 }],
 };
+
+// ── A choice keeps whatever its cases carry ───────────────────────────────────
+// A case whose name is the whole of it contributes that name; a case carved
+// further contributes its payload, keyed by the name. The case name is the
+// discriminant, so a tagged union needs no reserved tag key.
+
+const enumLike = oneOf("their tier", {
+	free: def("no cost"),
+	pro: def("paid"),
+});
+export const tier: Shape<typeof enumLike> = "pro";
+// @ts-expect-error a bare-name case still contributes only its name
+export const badTier: Shape<typeof enumLike> = { pro: {} };
+
+const shapeChoice = oneOf("a shape", {
+	circle: def("round", { radius: of(Number) }),
+	square: def("four equal sides", { side: of(Number) }),
+});
+export const round: Shape<typeof shapeChoice> = { circle: { radius: 2 } };
+export const boxy: Shape<typeof shapeChoice> = { square: { side: 2 } };
+// @ts-expect-error a carved case carries its payload, not just its name
+export const bareTag: Shape<typeof shapeChoice> = "circle";
+export const wrongPayload: Shape<typeof shapeChoice> = {
+	// @ts-expect-error radius is a number
+	circle: { radius: "2" },
+};
+// @ts-expect-error the payload has to match the case it is keyed under
+export const crossed: Shape<typeof shapeChoice> = { circle: { side: 2 } };
+
+// Mixed is honest: each case contributes exactly as much as it was given.
+const mixed = oneOf("what it takes on", {
+	shape: of(def("a point", { x: of(Number) })),
+	token: def("a runtime type token"),
+});
+export const asToken: Shape<typeof mixed> = "token";
+export const asShape: Shape<typeof mixed> = { shape: { x: 1 } };
+
+// ── A keyed `many` is a container decision, not a different former ────────────
+const named = many("the concepts, by the name each is bound under", of(String), of(
+	def("a node", { title: of(String) }),
+));
+export const byName: Shape<typeof named> = {
+	first: { title: "a" },
+	second: { title: "b" },
+};
+export const badByName: Shape<typeof named> = {
+	// @ts-expect-error the element is a node, not a string
+	first: "a",
+};
+// An unkeyed `many` is still a sequence.
+const listed = many("some nodes", of(def("a node", { title: of(String) })));
+export const inOrder: Shape<typeof listed> = [{ title: "a" }];
