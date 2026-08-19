@@ -6,7 +6,7 @@
  * concept's gaps for a human or AI to fill in.
  */
 export { codegen } from "./codegen.js";
-export type { Concept, Former, Node, TypeOf } from "./concept.js";
+export { type Concept, former, type Former, type Node, type TypeOf } from "./concept.js";
 export { type Conforms, conforms } from "./conforms.js";
 export { def, type Def } from "./def.js";
 export { emit } from "./emit.js";
@@ -14,6 +14,7 @@ export type { Fill } from "./fill.js";
 export type { Gap, GapOf } from "./gap.js";
 export { given, type Given } from "./given.js";
 export { many, type Many } from "./many.js";
+export { never, type Never } from "./never.js";
 export { maybe, type Maybe } from "./maybe.js";
 export {
 	of,

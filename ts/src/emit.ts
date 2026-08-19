@@ -10,6 +10,7 @@ const FORM: Record<Former, string> = {
 	maybe: "optional",
 	oneOf: "choice",
 	given: "fact",
+	never: "declined",
 };
 
 /** Static preamble embedded in every emitted document, explaining the output's conventions to its reader. */
@@ -146,6 +147,8 @@ export function emit(mod: Record<string, unknown>): {
 				return "Which case applies; the cases are below.";
 			case "given":
 				return "None — a fact is decided, not a gap; rely on it as fixed.";
+			case "never":
+				return "None — this region was considered and declined. Do not fill it.";
 		}
 	};
 
@@ -201,6 +204,8 @@ export function emit(mod: Record<string, unknown>): {
 			}
 			case "given":
 				return `${p} — a fact: ${c.value}. Fixed, not a gap; read it as given.`;
+			case "never":
+				return `${p} — declined: ${c.description}. Considered and ruled out; not an oversight, and not yours to fill.`;
 		}
 	};
 

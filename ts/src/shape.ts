@@ -87,7 +87,9 @@ type OfShape<C> = C extends { readonly from: infer From }
  * to type — and no less, at any depth.
  */
 export type Shape<C> = C extends { readonly [former]: infer K }
-	? K extends "given"
+	? K extends "never"
+		? undefined
+		: K extends "given"
 		? C extends { readonly value: infer V }
 			? V
 			: unknown

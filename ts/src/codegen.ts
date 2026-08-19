@@ -117,6 +117,8 @@ export function codegen(
 			}
 			case "given":
 				return call("given", [JSON.stringify(c.value)]);
+			case "never":
+				return call("never", [d ?? '""']);
 		}
 	};
 

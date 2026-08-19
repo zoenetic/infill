@@ -15,7 +15,8 @@ export type Former =
 	| "many"
 	| "maybe"
 	| "oneOf"
-	| "given";
+	| "given"
+	| "never";
 
 /** Phantom property key used to carry a {@link Concept}'s inferred value type ({@link TypeOf}) at the type level only; never set at runtime. */
 export const type: unique symbol = Symbol.for("codeform.type");
@@ -53,6 +54,8 @@ export interface Concept<
 		| Readonly<Record<string, Concept<any, any>>>;
 	/** Present on `given` concepts: Facts. */
 	readonly value?: unknown;
+	/** Present on `never` concepts: marks the region declined rather than unanswered. */
+	readonly declined?: true;
 	readonly [gap]?: G;
 	readonly [type]?: T;
 }
