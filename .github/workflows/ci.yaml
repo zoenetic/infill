@@ -30,14 +30,19 @@ jobs:
           pnpm exec tsc --noEmit
           pnpm exec tsx --test src/*.test.ts
 
-      - name: self-spec compiles and emits
+      # The self-spec now round-trips: `gen` produces a decisions file that
+      # compiles, so `check` proves the mirror conforms rather than only that the
+      # spec parses. Regenerating first catches drift between the two.
+      - name: self-spec round-trips and conforms
         working-directory: spec
         run: |
-          pnpm exec tsc --noEmit
+          ./node_modules/.bin/codeform gen spec.ts --overwrite
+          git diff --exit-code decisions.gen.ts
+          ./node_modules/.bin/codeform check spec.ts
           ./node_modules/.bin/codeform emit spec.ts > /dev/null
 
       - name: examples conform
         run: |
-          for d in account hangman; do
+          for d in account hangman ts; do
             (cd "examples/$d" && ../node_modules/.bin/codeform check spec.ts)
           done

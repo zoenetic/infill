@@ -45,6 +45,8 @@ export interface Concept<
 	readonly token?: unknown;
 	/** Present on `many`/`maybe` concepts: the element or wrapped concept. */
 	readonly inner?: Concept<any, any>;
+	/** Present on a keyed `many`: the concept its keys take, deciding the container the bare form leaves open. */
+	readonly key?: Concept<any, any>;
 	/** Present on `oneOf` concepts: the exhaustive list of alternatives, as an array of cases or a keyed record for {@link pick}. */
 	readonly cases?:
 		| readonly Concept<any, any>[]
@@ -57,3 +59,22 @@ export interface Concept<
 
 /** Extracts the inferred value type `T` that a concept `C` describes, or `unknown` if it cannot be determined. */
 export type TypeOf<C> = C extends Concept<any, any, infer T> ? T : unknown;
+
+/**
+ * A {@link Concept} refined with its {@link Former} tag and, in `X`, the precise
+ * child concepts it holds — the target of a `ref`, the shape a `of` takes on, a
+ * collection's element, a choice's cases, a fact's value.
+ *
+ * `Concept` declares those slots loosely (`Concept<any, any>`) so the interface
+ * stays readable; the formers return `Node`, which replaces each slot it names
+ * with the precise child. That precision is what lets `Shape` and `Conforms` walk
+ * a spec structurally, rather than bottoming out at `unknown` the moment a node
+ * stops being a plain object of parts.
+ */
+export type Node<
+	K extends Former,
+	G extends string = Gap,
+	F extends Fill = {},
+	T = unknown,
+	X = unknown,
+> = Omit<Concept<G, F, T>, keyof X> & { readonly [former]: K } & X;

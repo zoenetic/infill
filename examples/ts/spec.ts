@@ -1,4 +1,4 @@
-import { def, many, of, oneOf, ref } from "../../ts/src";
+import { def, many, of, oneOf, ref } from "codeform";
 
 export const status = oneOf({
 	active: def("the account is usable"),

@@ -94,3 +94,22 @@ test("a given renders as a closed fact", () => {
 	assert.match(doc.concepts.pinned.gap, /^None/);
 	assert.equal(doc.concepts.pinned.describedBy, undefined);
 });
+
+test("a keyed many renders its key alongside its element", () => {
+	const node = def("a node", { title: of(String) });
+	const spec = def("a spec", {
+		concepts: many("by the name each is bound under", of(String), of(node)),
+	});
+	const { yaml } = emit({ node, spec } as Record<string, unknown>);
+	assert.match(yaml, /keyedBy:/);
+	assert.match(yaml, /path: spec\.concepts\{\}/);
+	assert.match(yaml, /path: spec\.concepts\[\]/);
+	assert.match(yaml, /each element is addressed by a key|addressed by a key/);
+});
+
+test("an unkeyed many says the container is a sequence", () => {
+	const spec = def("a list", { items: many("in order", of(String)) });
+	const { yaml } = emit({ spec } as Record<string, unknown>);
+	assert.doesNotMatch(yaml, /keyedBy:/);
+	assert.match(yaml, /the container is a sequence/);
+});

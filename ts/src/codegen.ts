@@ -25,6 +25,16 @@ export function codegen(
 		if (name !== "default" && isConcept(v)) named.set(v, name);
 	const emit = only ? new Set(only) : null;
 
+	// The decisions file declares each concept under its own name and its
+	// conformance assertion under `_name`, so the namespace the spec is imported
+	// under has to dodge both — a spec that names a concept `spec` (codeform's own
+	// does) would otherwise generate a file whose import collides with its first
+	// declaration.
+	const taken = new Set<string>();
+	for (const name of named.values()) taken.add(name).add(`_${name}`);
+	let ns = "spec";
+	while (taken.has(ns)) ns = `_${ns}`;
+
 	// The formers `expr` actually emits, so the import lists only what's used.
 	const used = new Set<string>();
 	const call = (fn: string, args: (string | undefined)[]) => {
@@ -37,20 +47,22 @@ export function codegen(
 		ind: string,
 	): string => {
 		const inner = `${ind}\t`;
-		const rows = Object.entries(fill)
-			// skip `given` facts, and phantom `of<T>()` leaves whose type is erased
-			// (token-typed `of(String)` leaves survive and are reproduced below)
-			.filter(
-				([, v]) =>
-					v[former] !== "given" &&
-					!(v[former] === "of" && !v.from && v.token === undefined),
-			)
-			.map(([k, v]) => `${inner}${k}: ${expr(v, inner)},`);
+		const entries = Object.entries(fill);
+		if (entries.length === 0) return "{}";
+		const rows = entries.map(([k, v]) => `${inner}${k}: ${expr(v, inner)},`);
 		return `{\n${rows.join("\n")}\n${ind}}`;
 	};
 
-	const ref = (c: Concept<any, any> | undefined) =>
-		c && named.has(c) ? `spec.${named.get(c)}` : "spec./*inline*/";
+	// A concept bound to a spec export is addressed through it, so the decision
+	// stays linked to the spec rather than copying it. One that isn't bound has
+	// no address, so it is reproduced inline — it projects the same either way.
+	const target = (c: Concept<any, any> | undefined, ind: string): string => {
+		if (!c)
+			throw new TypeError(
+				"a ref, pick or of reached codegen without a target — the concept is malformed",
+			);
+		return named.has(c) ? `${ns}.${named.get(c)}` : expr(c, ind);
+	};
 
 	/** Source for a token-typed `of` leaf's token — `String`/`Number`/`Boolean`. */
 	const tokenSource = (t: unknown): string =>
@@ -68,16 +80,20 @@ export function codegen(
 			case "def":
 				return call("def", [d, c.fill ? fillExpr(c.fill, ind) : undefined]);
 			case "ref":
-				return call("ref", [d, ref(c.to)]);
+				return call("ref", [d, target(c.to, ind)]);
 			case "of":
 				if (c.token) return call("of", [d, tokenSource(c.token)]);
 				return call("of", [
 					d,
-					ref(c.from),
+					target(c.from, ind),
 					c.fill ? fillExpr(c.fill, ind) : undefined,
 				]);
 			case "many":
-				return call("many", [d, expr(c.inner!, ind)]);
+				return call("many", [
+					d,
+					c.key ? expr(c.key, ind) : undefined,
+					expr(c.inner!, ind),
+				]);
 			case "maybe":
 				return call("maybe", [d, expr(c.inner!, ind)]);
 			case "oneOf": {
@@ -88,7 +104,7 @@ export function codegen(
 				// lose the linkage to the choice it narrows.
 				if (c.to && cs && !Array.isArray(cs)) {
 					const [key] = Object.keys(cs);
-					return call("pick", [ref(c.to), str(key)]);
+					return call("pick", [target(c.to, ind), str(key)]);
 				}
 				if (Array.isArray(cs))
 					return call("oneOf", [d, ...cs.map((k) => expr(k, ind))]);
@@ -110,7 +126,7 @@ export function codegen(
 		if ((c as Concept<any, any>)[former] === "given") continue;
 		body.push(`export const ${name} = ${expr(c as Concept<any, any>, "")};`);
 		body.push(
-			`export const _${name}: Conforms<typeof ${name}, typeof spec.${name}, "${name}"> = conforms<typeof ${name}, typeof spec.${name}, "${name}">();`,
+			`export const _${name}: Conforms<typeof ${name}, typeof ${ns}.${name}, "${name}"> = conforms<typeof ${name}, typeof ${ns}.${name}, "${name}">();`,
 		);
 		body.push("");
 	}
@@ -120,6 +136,6 @@ export function codegen(
 	const imports = ["type Conforms", "conforms", ...[...used].sort()].join(", ");
 	return (
 		`import { ${imports} } from "${opts.lib}";\n` +
-		`import * as spec from "${opts.spec}";\n\n${decls}\n`
+		`import * as ${ns} from "${opts.spec}";\n\n${decls}\n`
 	);
 }
