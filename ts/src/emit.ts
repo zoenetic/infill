@@ -103,9 +103,9 @@ export function emit(mod: Record<string, unknown>): {
 	const nameOf = (c: Concept<any, any> | undefined) =>
 		c ? (named.get(c) ?? null) : null;
 
-	// A from-less `of` reads as a leaf. A phantom `of<T>()` erases its type, so
-	// the artifact can't show it; a token-typed `of(String)` keeps the type at
-	// runtime (see `tokenName`), so the leaf renders with an explicit `type`.
+	// The only from-less `of` is a token leaf, which reads as a concept in its own
+	// right rather than as something shaped from elsewhere; `tokenName` below adds
+	// the explicit `type` that tells the reader what it holds.
 	const kindOf = (c: Concept<any, any>) =>
 		c[former] === "of" && !c.from ? ("def" as const) : c[former];
 

@@ -72,8 +72,8 @@ export const _spuriousBlame: "signer.banana" = conforms<
 export const _badPick = pick(status, "banned");
 
 // A typed leaf whose type doesn't narrow reports the leaf's path.
-const portSpec = def("a service", { port: of<number>() });
-const portWrong = def("a service", { port: of<string>() });
+const portSpec = def("a service", { port: of(Number) });
+const portWrong = def("a service", { port: of(String) });
 // @ts-expect-error a string leaf doesn't narrow a number leaf
 export const _wrongType: Conforms<typeof portWrong, typeof portSpec, "service"> =
 	conforms<typeof portWrong, typeof portSpec, "service">();

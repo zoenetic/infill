@@ -56,8 +56,13 @@ export function codegen(
 	// A concept bound to a spec export is addressed through it, so the decision
 	// stays linked to the spec rather than copying it. One that isn't bound has
 	// no address, so it is reproduced inline — it projects the same either way.
-	const target = (c: Concept<any, any> | undefined, ind: string): string =>
-		c && named.has(c) ? `${ns}.${named.get(c)}` : expr(c as Concept<any, any>, ind);
+	const target = (c: Concept<any, any> | undefined, ind: string): string => {
+		if (!c)
+			throw new TypeError(
+				"a ref, pick or of reached codegen without a target — the concept is malformed",
+			);
+		return named.has(c) ? `${ns}.${named.get(c)}` : expr(c, ind);
+	};
 
 	/** Source for a token-typed `of` leaf's token — `String`/`Number`/`Boolean`. */
 	const tokenSource = (t: unknown): string =>
@@ -78,10 +83,6 @@ export function codegen(
 				return call("ref", [d, target(c.to, ind)]);
 			case "of":
 				if (c.token) return call("of", [d, tokenSource(c.token)]);
-				// A from-less, token-less `of` is a leaf whose type lives only in the
-				// spec's source. Nothing about it survives to runtime, so it round-trips
-				// as the prose leaf it looks like from here — see `of`'s note on erasure.
-				if (!c.from) return call("of", [d]);
 				return call("of", [
 					d,
 					target(c.from, ind),

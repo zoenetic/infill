@@ -57,23 +57,19 @@ export type OfToken<Tok> = Node<
 	{ readonly token: Tok }
 >;
 
-/** An `of` leaf typed only in the spec's source — see {@link of}'s note on erasure. */
-export type OfType<T> = Node<"of", Gap, {}, T>;
-
 const isToken = (x: unknown): x is TypeToken =>
 	x === String || x === Number || x === Boolean;
 
 /**
- * Creates a totally unspecified `of` concept describing a value of type `T`.
+ * Creates an `of` leaf whose type is a runtime token (`of(String)`).
  *
- * The type is erased at runtime, so `emit`, `codegen` and `check` cannot see it —
- * only the type checker can. Prefer the token form (`of(String)`) for any leaf a
- * decisions file should be held to; this overload is a type-only escape hatch.
+ * Every `of` takes something on — a concept's shape, or a token's type. There is
+ * deliberately no way to type a leaf from the spec's source alone: a type the
+ * checker can see but `emit`, `gen` and `check` cannot is a leaf the framework
+ * would silently stop holding. For anything a token doesn't cover, describe the
+ * structure with the other formers — a `def` with parts, a `oneOf` of cases —
+ * which every stage can read.
  */
-export function of<T>(): OfType<T>;
-/** Creates an `of` concept describing a value of type `T`, specified only by its description. The type is erased — see the note on the no-argument overload. */
-export function of<T>(description: string): OfType<T>;
-/** Creates an `of` leaf whose type is a runtime token (`of(String)`) — visible to emit, codegen and conformance, not only the type checker. */
 export function of<Tok extends TypeToken>(token: Tok): OfToken<Tok>;
 /** Creates a token-typed `of` leaf, documented by `description`. */
 export function of<Tok extends TypeToken>(
@@ -107,10 +103,17 @@ export function of(
 	const second = typeof a === "string" ? b : a;
 	const fill = (typeof a === "string" ? c : b) as Fill | undefined;
 	if (isToken(second)) return { [former]: "of", description, token: second };
+	// The overloads above already rule this out; the guard is for a spec written
+	// in plain JavaScript, where a from-less `of` would otherwise reach `emit` and
+	// `codegen` as a leaf neither can read.
+	if (typeof second !== "object" || second === null || !(former in second))
+		throw new TypeError(
+			"of() takes on a concept's shape or a token's type — pass a concept, or String, Number or Boolean. For an untyped gap, use def().",
+		);
 	return {
 		[former]: "of",
 		description,
-		from: second as Concept<any, any> | undefined,
+		from: second as Concept<any, any>,
 		fill,
 	};
 }

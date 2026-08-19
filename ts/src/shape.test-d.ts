@@ -20,10 +20,10 @@ const plan = oneOf({
 });
 
 const account = def("a signed-up user", {
-	email: of<string>("how we reach them"),
-	displayName: of<string>("what others see"),
+	email: of("how we reach them", String),
+	displayName: of("what others see", String),
 	plan: of(plan),
-	seats: of<number>("how many people"),
+	seats: of("how many people", Number),
 	notes: def("free-form, untyped"), // prose leaf -> unknown
 });
 
@@ -68,26 +68,29 @@ export const onlyPro: Shape<typeof decidedPlan> = "pro";
 // @ts-expect-error the decision fixed the plan to "pro"
 export const notPro: Shape<typeof decidedPlan> = "free";
 
-// Token-typed leaves — the type is a runtime value, but still projects like of<T>().
+// Token-typed leaves: the type is carried by a runtime value, so every stage —
+// the projection, `emit`, `gen` and `check` — can see it.
 const config = def("a service config", {
 	host: of(String),
 	port: of("the listening port", Number),
 	tls: of(Boolean),
-	legacy: of<string>(), // phantom still available as a type-only escape hatch
 });
 export const cfg: Shape<typeof config> = {
 	host: "localhost",
 	port: 8080,
 	tls: true,
-	legacy: "v1",
 };
 export const badCfg: Shape<typeof config> = {
 	// @ts-expect-error host is a string (of(String))
 	host: 42,
 	port: 8080,
 	tls: true,
-	legacy: "v1",
 };
+
+// An `of` always takes something on, so there is no way to name a type the
+// checker can see but the rest of the pipeline cannot.
+// @ts-expect-error `of` needs a concept or a token
+export const nothingTakenOn = of("just a description");
 
 // A `maybe` part projects to an optional property: the key may be omitted...
 const contact = def("a way to reach someone", {

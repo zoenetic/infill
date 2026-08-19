@@ -19,7 +19,6 @@ export {
 	of,
 	type Of,
 	type OfToken,
-	type OfType,
 	type TokenType,
 	type TypeToken,
 } from "./of.js";

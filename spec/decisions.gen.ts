@@ -30,7 +30,7 @@ export const former = oneOf("each former produces a kind of node from its own op
 		target: ref(__spec.concept),
 		form: given("reference"),
 	}),
-	of: def("either takes another concept's shape and gaps and narrows them — adding new parts or carving existing ones, never dropping a gap, so a refinement only ever conforms to its target — or types a leaf value from a runtime token (String, Number, or Boolean) so the leaf's type survives from the spec into the model's code", {
+	of: def("always takes something on, and only ever narrows it: either another concept's shape and gaps — adding new parts or carving existing ones, never dropping a gap, so a refinement only ever conforms to its target — or a leaf's type, from a runtime token (String, Number, or Boolean). A token is a runtime value on purpose: a type named in the spec's source alone would reach the typechecker but not the artifact, the scaffold or the check, and a leaf the framework silently stops holding is worse than one it never typed", {
 		target: ref(__spec.concept),
 		form: given("shape"),
 	}),

@@ -42,7 +42,7 @@ Both halves are **total** — every former has a rule, at every depth. A `ref` p
 
 What `tsc` holds is **structure**: the shape of your data at any depth, the closed set of a `oneOf` (the model can't invent a case), exhaustiveness when you handle one, and exact values pinned by `pick` and `given`. Behavioural rules travel as prose in the emitted contract; the model implements them and you review.
 
-One leaf is deliberately outside all of this. `of<string>()` types a leaf in the spec's source alone — nothing survives to runtime, so `emit`, `gen` and `check` can't see it. Use the token form, `of(String)`, for any leaf the decisions file should be held to.
+Nothing the checker sees is invisible to the rest of it. An `of` always takes something on — a concept's shape, or a token's type (`of(String)`) — so there is no way to name a type in the spec's source that `emit`, `gen` and `check` can't read back. For what a token doesn't cover, describe the structure with the other formers; that is what they are for.
 
 Full runnable specs live in [`examples/account`](examples/account) and [`examples/hangman`](examples/hangman) — a whole game from a small spec.
 

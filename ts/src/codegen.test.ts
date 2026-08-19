@@ -68,13 +68,14 @@ test("a spec concept named `spec` doesn't collide with the namespace import", ()
 	assert.match(out, /typeof __spec\.spec/);
 });
 
-test("a from-less `of` leaf round-trips instead of emitting a broken reference", () => {
-	// `of("prose")` and `of<T>("prose")` are indistinguishable at runtime: neither
-	// carries a target. Emitting `of(desc, spec./*inline*/)` was not valid source.
-	const leaf = def("a config", { note: of("anything you like") });
-	const out = codegen({ leaf } as Record<string, unknown>, opts);
-	assert.match(out, /note: of\("anything you like"\)/);
-	assert.doesNotMatch(out, /inline/);
+test("an `of` with nothing to take on is refused at the call, not at codegen", () => {
+	// A from-less, token-less `of` used to reach codegen as a leaf it could not
+	// address, and emitted `of(desc, spec./*inline*/)` — not valid source. There
+	// is no such node any more: `of` needs a concept or a token.
+	assert.throws(
+		() => (of as (d: string) => unknown)("anything you like"),
+		/takes on a concept's shape or a token's type/,
+	);
 });
 
 test("an unbound target is reproduced inline, not addressed through the spec", () => {

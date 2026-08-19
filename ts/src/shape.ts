@@ -39,9 +39,10 @@ type ChoiceShape<C> = C extends { readonly cases: infer Cs }
 	: unknown;
 
 /**
- * An `of` projects through whatever gave it its type: a target concept's shape
- * (with this node's parts laid over it), a runtime token's type, or — for the
- * erased `of<T>()` form — the type carried in the spec's source alone.
+ * An `of` projects through whatever gave it its type: a target concept's shape,
+ * with this node's parts laid over it, or a runtime token's type. Those are the
+ * only two ways to build one, so there is no third case — a node with neither is
+ * malformed, and `never` says so where `unknown` would quietly wave it through.
  */
 type OfShape<C> = C extends { readonly from: infer From }
 	? [keyof FillOf<C>] extends [never]
@@ -49,7 +50,7 @@ type OfShape<C> = C extends { readonly from: infer From }
 		: Merge<Shape<From>, Parts<FillOf<C>>>
 	: C extends { readonly token: infer Tok }
 		? TokenType<Tok>
-		: TypeOf<C>;
+		: never;
 
 /**
  * Projects a concept `C` into the concrete TypeScript type its implementation
